@@ -99,7 +99,7 @@ private:
         static_assert(is_unsigned_v<Unsigned>);
         constexpr auto bits = numeric_limits<Unsigned>::digits;
         n %= bits;
-        return (number << n) | (number >> (bits-n));
+        return (number << n) bitor (number >> (bits-n));
     }
 
     void transform(span<const byte> chunk)
@@ -168,25 +168,26 @@ private:
     static byte narrow(Integer number)
     {
         static_assert(is_integral_v<Integer>);
-        static_assert(numeric_limits<Type>::digits < numeric_limits<Integer>::digits);
+        static_assert(numeric_limits<Type>::digits<numeric_limits<Integer>::digits);
         return static_cast<Type>(number bitand 0b11111111);
     }
 
     static void encode(span<byte> output, const uint64_t input)
     {
-    		output[7] = narrow<byte>(input >>  0);
-    		output[6] = narrow<byte>(input >>  8);
-    		output[5] = narrow<byte>(input >> 16);
-    		output[4] = narrow<byte>(input >> 24);
-    		output[3] = narrow<byte>(input >> 32);
-    		output[2] = narrow<byte>(input >> 40);
-    		output[1] = narrow<byte>(input >> 48);
-    		output[0] = narrow<byte>(input >> 56);
+    	output[7] = narrow<byte>(input >>  0);
+    	output[6] = narrow<byte>(input >>  8);
+    	output[5] = narrow<byte>(input >> 16);
+    	output[4] = narrow<byte>(input >> 24);
+    	output[3] = narrow<byte>(input >> 32);
+    	output[2] = narrow<byte>(input >> 40);
+    	output[1] = narrow<byte>(input >> 48);
+    	output[0] = narrow<byte>(input >> 56);
     }
 
     static void encode(span<byte> output, const span<uint32_t> input)
     {
-    	for (auto i = 0ull, j = 0ull; j < output.size(); ++i, j += 4ull) {
+    	for (auto i = 0ull, j = 0ull; j < output.size(); ++i, j += 4ull)
+        {
     		output[j+3] = narrow<byte>(input[i]);
     		output[j+2] = narrow<byte>(input[i] >>  8);
     		output[j+1] = narrow<byte>(input[i] >> 16);
