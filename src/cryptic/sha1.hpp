@@ -127,28 +127,46 @@ private:
              f = 0u,
              k = 0u;
 
-        for(auto i = 0u; i < 80u; ++i)
+        for(auto i = 0u; i < 20u; ++i)
         {
-            if (i < 20)
-            {
-                f = (b bitand c) bitor ((compl b) bitand d);
-                k = 0x5A827999u;
-            }
-            else if (i < 40)
-            {
-                f = b xor c xor d;
-                k = 0x6ED9EBA1u;
-            }
-            else if (i < 60)
-            {
-                f = (b bitand c) bitor (b bitand d) bitor (c bitand d);
-                k = 0x8F1BBCDCu;
-            }
-            else if (i < 80)
-            {
-                f = b xor c xor d;
-                k = 0xCA62C1D6u;
-            }
+            f = (b bitand c) bitor ((compl b) bitand d);
+            k = 0x5A827999u;
+            auto temp = leftrotate<5>(a) + f + e + k + words[i];
+            e = d;
+            d = c;
+            c = leftrotate<30>(b);
+            b = a;
+            a = temp;
+        }
+
+        for(auto i = 20u; i < 40u; ++i)
+        {
+            f = b xor c xor d;
+            k = 0x6ED9EBA1u;
+            auto temp = leftrotate<5>(a) + f + e + k + words[i];
+            e = d;
+            d = c;
+            c = leftrotate<30>(b);
+            b = a;
+            a = temp;
+        }
+
+        for(auto i = 40u; i < 60u; ++i)
+        {
+            f = (b bitand c) bitor (b bitand d) bitor (c bitand d);
+            k = 0x8F1BBCDCu;
+            auto temp = leftrotate<5>(a) + f + e + k + words[i];
+            e = d;
+            d = c;
+            c = leftrotate<30>(b);
+            b = a;
+            a = temp;
+        }
+
+        for(auto i = 60u; i < 80u; ++i)
+        {
+            f = b xor c xor d;
+            k = 0xCA62C1D6u;
             auto temp = leftrotate<5>(a) + f + e + k + words[i];
             e = d;
             d = c;
