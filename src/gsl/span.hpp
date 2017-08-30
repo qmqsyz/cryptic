@@ -88,14 +88,18 @@ public:
     constexpr span(Container& cont) : m_data{reinterpret_cast<ElementType*>(cont.data())}, m_size{cont.size()}
     {}
 
-    template <class Container> span(const Container&&) = delete;
+    template <class Container>
+    constexpr span(const Container& cont) : m_data{reinterpret_cast<const ElementType*>(cont.data())}, m_size{cont.size()}
+    {}
+
+    // template <class Container> span(const Container&&) = delete;
 
     constexpr span(const span& other) noexcept = default;
 
     constexpr span(span&& other) noexcept = default;
 
     template <class OtherElementType, ptrdiff_t OtherExtent>
-    constexpr span(const span<OtherElementType, OtherExtent>& other) : span<ElementType,Extent>{other.data()}
+    constexpr span(const span<OtherElementType, OtherExtent>& other) : span<ElementType,Extent>{other.m_data}
     {
         using std::experimental::is_convertible_v;
         static_assert(std::is_convertible_v<OtherElementType,ElementType>, "Not convertible");
@@ -103,7 +107,7 @@ public:
     }
 
     template <class OtherElementType, ptrdiff_t OtherExtent>
-    constexpr span(span<OtherElementType, OtherExtent>&& other) : span<ElementType,Extent>{other.data()}
+    constexpr span(span<OtherElementType, OtherExtent>&& other) : span<ElementType,Extent>{other.m_data}
     {
         using std::experimental::is_convertible_v;
         static_assert(std::is_convertible_v<OtherElementType,ElementType>, "Not convertible");
