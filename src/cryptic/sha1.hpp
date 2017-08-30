@@ -92,13 +92,13 @@ private:
 
     uint64_t message_length;
 
-    template<typename Unsigned>
-    static Unsigned leftrotate(Unsigned number, size_t n)
+    template<size_t Rotation, typename Unsigned>
+    static Unsigned leftrotate(Unsigned number)
     {
         static_assert(is_unsigned_v<Unsigned>);
         constexpr auto bits = numeric_limits<Unsigned>::digits;
-        n %= bits;
-        return (number << n) bitor (number >> (bits-n));
+        static_assert(Rotation <= bits);
+        return (number << Rotation) bitor (number >> (bits-Rotation));
     }
 
     void transform(span<const byte> chunk)
@@ -114,10 +114,10 @@ private:
                        to_integer<uint32_t>(chunk[j+3]);
 
         for(auto i = 16u; i < 32u; ++i)
-            words[i] = leftrotate((words[i-3] xor words[i-8] xor words[i-14] xor words[i-16]), 1);
+            words[i] = leftrotate<1>(words[i-3] xor words[i-8] xor words[i-14] xor words[i-16]);
 
         for(auto i = 32u; i < 80u; ++i)
-            words[i] = leftrotate((words[i-6] xor words[i-16] xor words[i-28] xor words[i-32]), 2);
+            words[i] = leftrotate<2>(words[i-6] xor words[i-16] xor words[i-28] xor words[i-32]);
 
         auto a = message_digest[0],
              b = message_digest[1],
@@ -149,13 +149,14 @@ private:
                 f = b xor c xor d;
                 k = 0xCA62C1D6u;
             }
-            auto temp = leftrotate(a, 5) + f + e + k + words[i];
+            auto temp = leftrotate<5>(a) + f + e + k + words[i];
             e = d;
             d = c;
-            c = leftrotate(b, 30);
+            c = leftrotate<30>(b);
             b = a;
             a = temp;
         }
+
         message_digest[0] += a;
         message_digest[1] += b;
         message_digest[2] += c;

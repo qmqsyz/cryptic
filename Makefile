@@ -1,10 +1,16 @@
 #CXX = /Library/Developer/CommandLineTools/usr/bin/clang
 CXX = /usr/local/bin/clang
 
-CXXFLAGS = -nostdinc++ -I/usr/local/include/c++/v1 -I$(SRCDIR) -std=c++1z -MMD # -D DEBUG=1
+CXXFLAGS = -I$(SRCDIR) -std=c++1z -D DEBUG=1 -O3 # -MMD
+CXXFLAGS += -nostdinc++ -I/usr/local/include/c++/v1
+CXXFLAGS += -I../openssl-build/include
+CXXFLAGS += -I../openssl/include
 
-LDFLAGS = -nostdlib -L/usr/lib -L/usr/local/lib -lc++ -lSystem
-
+LDFLAGS = -nostdlib
+LDFLAGS += -L/usr/lib
+LDFLAGS += -L/usr/local/lib
+LDFLAGS += -L../openssl-build
+LDFLAGS += -lc++ -lSystem -lcrypto
 
 SRCDIR = src
 
@@ -19,7 +25,7 @@ LIBDIR = lib
 INCDIR = include
 
 
-TARGETS = $(addprefix $(BINDIR)/, test)
+TARGETS = $(addprefix $(BINDIR)/, test benchmark)
 
 MAINS	= $(TARGETS:$(BINDIR)/%=$(SRCDIR)/%.cpp)
 
@@ -33,8 +39,8 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.cpp
 
 $(TARGETS): $(OBJECTS)
 	@mkdir -p $(@D)
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(@:$(BINDIR)/%=$(SRCDIR)/%.cpp) $(OBJECTS) -MF $(@:$(BINDIR)/%=$(OBJDIR)/%.d) -o $@
-
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(@:$(BINDIR)/%=$(SRCDIR)/%.cpp) $(OBJECTS) -o $@
+#	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(@:$(BINDIR)/%=$(SRCDIR)/%.cpp) $(OBJECTS) -MF $(@:$(BINDIR)/%=$(OBJDIR)/%.d) -o $@
 
 LIBRARIES = $(addprefix $(LIBDIR)/, libnet4cpp.a)
 
