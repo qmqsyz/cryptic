@@ -20,7 +20,7 @@ public:
                        0x98BADCFEu,
                        0x10325476u,
                        0xC3D2E1F0u},
-        message_length{0ll}
+        message_length{0ull}
     {}
 
     sha1(span<const byte> message) : sha1()
