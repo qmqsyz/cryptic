@@ -95,7 +95,7 @@ public:
     constexpr span(span&& other) noexcept = default;
 
     template <class OtherElementType, ptrdiff_t OtherExtent>
-    constexpr span(const span<OtherElementType, OtherExtent>& other) : span<ElementType,Extent>{other.m_data}
+    constexpr span(const span<OtherElementType, OtherExtent>& other) : span<ElementType,Extent>{other.data()}
     {
         using std::experimental::is_convertible_v;
         static_assert(std::is_convertible_v<OtherElementType,ElementType>, "Not convertible");
@@ -103,7 +103,7 @@ public:
     }
 
     template <class OtherElementType, ptrdiff_t OtherExtent>
-    constexpr span(span<OtherElementType, OtherExtent>&& other) : span<ElementType,Extent>{other.m_data}
+    constexpr span(span<OtherElementType, OtherExtent>&& other) : span<ElementType,Extent>{other.data()}
     {
         using std::experimental::is_convertible_v;
         static_assert(std::is_convertible_v<OtherElementType,ElementType>, "Not convertible");

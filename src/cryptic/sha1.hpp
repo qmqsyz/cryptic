@@ -20,6 +20,7 @@ public:
                        0x98BADCFEu,
                        0x10325476u,
                        0xC3D2E1F0u},
+        buffer{},
         message_length{0ull}
     {}
 
@@ -64,17 +65,17 @@ public:
     const byte* data() noexcept
     {
         encode(buffer, message_digest);
-        return buffer;
+        return buffer.data();
     }
 
     constexpr size_t size() const noexcept
     {
-        return digest_length;
+        return buffer.size();
     }
 
     string base64()
     {
-        return base64::encode(basic_string_view<byte>(data(), size()));
+        return base64::encode(make_span(data(), size()));
     }
 
     static string base64(span<const byte> message)
@@ -85,13 +86,11 @@ public:
 
 private:
 
-    constexpr static size_t digest_length = 20ull;
+    array<uint32_t,5> message_digest;
 
-    uint32_t message_digest[5];
+    array<byte,20> buffer;
 
     uint64_t message_length;
-
-    byte buffer[digest_length];
 
     template<typename Unsigned>
     static Unsigned leftrotate(Unsigned number, size_t n)
