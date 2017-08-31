@@ -30,7 +30,8 @@ void cryptic_test()
     auto t1 = std::chrono::high_resolution_clock::now();
     for(auto i = loops; i; --i)
     {
-        auto hash = cryptic::sha1{test};
+        // auto hash = cryptic::sha1{test};
+        cryptic::sha1{test};
     }
     auto t2 = std::chrono::high_resolution_clock::now();
     auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1);
@@ -43,7 +44,8 @@ void crypto_test()
     auto t1 = std::chrono::high_resolution_clock::now();
     for(auto i = loops; i; --i)
     {
-        auto hash = SHA1((const unsigned char*)test.c_str(), test.size(), nullptr);
+        // auto hash = SHA1((const unsigned char*)test.c_str(), test.size(), nullptr);
+        SHA1((const unsigned char*)test.c_str(), test.size(), nullptr);
     }
     auto t2 = std::chrono::high_resolution_clock::now();
     auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1);

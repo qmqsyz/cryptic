@@ -26,11 +26,16 @@ public:
 
     sha1(span<const byte> message) : sha1()
     {
-        update(message);
+        hash(message);
     }
 
-    void update(span<const byte> message)
+    void hash(span<const byte> message)
     {
+        message_digest = {0x67452301u,
+                          0xEFCDAB89u,
+                          0x98BADCFEu,
+                          0x10325476u,
+                          0xC3D2E1F0u};
         message_length += 8 * message.size();
 
         while(message.size() >= 64)
