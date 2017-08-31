@@ -14,7 +14,7 @@ class sha1
 {
 public:
 
-    sha1() :
+    sha1() noexcept :
         message_digest{0x67452301u,
                        0xEFCDAB89u,
                        0x98BADCFEu,
@@ -86,14 +86,8 @@ public:
 
 private:
 
-    array<uint32_t,5> message_digest;
-
-    array<byte,20> buffer;
-
-    uint64_t message_length;
-
     template<size_t Rotation, typename Unsigned>
-    static Unsigned leftrotate(Unsigned number)
+    static constexpr Unsigned leftrotate(Unsigned number)
     {
         static_assert(is_unsigned_v<Unsigned>);
         constexpr auto bits = numeric_limits<Unsigned>::digits;
@@ -101,7 +95,7 @@ private:
         return (number << Rotation) bitor (number >> (bits-Rotation));
     }
 
-    void transform(span<const byte> chunk)
+    void transform(span<const byte> chunk) noexcept
     {
         Expects(chunk.size() == 64);
 
@@ -183,14 +177,14 @@ private:
     }
 
     template<typename Type, typename Integer>
-    static byte narrow(Integer number)
+    static constexpr byte narrow(Integer number)
     {
         static_assert(is_integral_v<Integer>);
         static_assert(numeric_limits<Type>::digits<numeric_limits<Integer>::digits);
         return static_cast<Type>(number bitand 0b11111111);
     }
 
-    static void encode(span<byte> output, const uint64_t input)
+    static void encode(span<byte> output, const uint64_t input) noexcept
     {
     	output[7] = narrow<byte>(input >>  0);
     	output[6] = narrow<byte>(input >>  8);
@@ -202,9 +196,9 @@ private:
     	output[0] = narrow<byte>(input >> 56);
     }
 
-    static void encode(span<byte> output, const span<uint32_t> input)
+    static void encode(span<byte> output, const span<uint32_t> input) noexcept
     {
-    	for (auto i = 0ull, j = 0ull; j < output.size(); ++i, j += 4ull)
+    	for(auto i = 0ull, j = 0ull; j < output.size(); ++i, j += 4ull)
         {
     		output[j+3] = narrow<byte>(input[i]);
     		output[j+2] = narrow<byte>(input[i] >>  8);
@@ -212,6 +206,12 @@ private:
     		output[j+0] = narrow<byte>(input[i] >> 24);
     	}
     }
-};
 
+    array<uint32_t,5> message_digest;
+
+    array<byte,20> buffer;
+
+    uint64_t message_length;
+
+};
 } // namespace sha1

@@ -8,7 +8,7 @@
 
 using namespace std::string_literals;
 
-constexpr auto loops = 1000000ul;
+constexpr auto loops = 10'000'000ul;
 
 const auto test = R"(XXXXXXXXXX         XXXXXXXXXXXXXXXXXXXXXXXXXXXX        XXXXXXXXXXXXXXXXXFFFFF
 
