@@ -24,7 +24,7 @@ LIBDIR = lib
 
 INCDIR = include
 
-TARGETS = $(addprefix $(BINDIR)/, test benchmark)
+TARGETS = $(addprefix $(BINDIR)/, example benchmark)
 
 MAINS	= $(TARGETS:$(BINDIR)/%=$(SRCDIR)/%.cpp)
 

@@ -6,7 +6,9 @@ using namespace std::string_literals;
 
 int main()
 {
-    auto test1 = "The quick brown fox jumps over the lazy dog"s;
+    std::cout << cryptic::sha1::base64("The quick brown fox jumps over the lazy dog"s) << std::endl;
+
+    auto test1 = "The quick brown fox jumps over the lazy cog"s;
     std::cout << cryptic::sha1::base64(test1) << std::endl;
 
     auto file = std::ifstream{"./src/test.cpp"};
@@ -25,6 +27,9 @@ int main()
 
     auto test6 = cryptic::base64::decode(test5);
     std::cout << test6 << std::endl;
+
+    auto test7 = cryptic::base64::decode("TWFu"s);
+    std::cout << test7 << std::endl;
 
     return 0;
 }
