@@ -1,7 +1,7 @@
 #CXX = /Library/Developer/CommandLineTools/usr/bin/clang
 CXX = /usr/local/bin/clang
 
-CXXFLAGS = -I$(SRCDIR) -std=c++1z -D DEBUG=1 -O3 # -MMD
+CXXFLAGS = -I$(SRCDIR) -std=c++1z -D DEBUG=1 -O3 -MMD
 CXXFLAGS += -nostdinc++ -I/usr/local/include/c++/v1
 CXXFLAGS += -I../openssl-build/include
 CXXFLAGS += -I../openssl/include
@@ -24,7 +24,6 @@ LIBDIR = lib
 
 INCDIR = include
 
-
 TARGETS = $(addprefix $(BINDIR)/, test benchmark)
 
 MAINS	= $(TARGETS:$(BINDIR)/%=$(SRCDIR)/%.cpp)
@@ -38,16 +37,15 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 $(TARGETS): $(OBJECTS)
-	@mkdir -p $(@D)
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(@:$(BINDIR)/%=$(SRCDIR)/%.cpp) $(OBJECTS) -o $@
-#	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(@:$(BINDIR)/%=$(SRCDIR)/%.cpp) $(OBJECTS) -MF $(@:$(BINDIR)/%=$(OBJDIR)/%.d) -o $@
+	@mkdir -p $(SRCDIR)
+	@mkdir -p $(OBJDIR)
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(@:$(BINDIR)/%=$(SRCDIR)/%.cpp) $(OBJECTS) -MF $(@:$(BINDIR)/%=$(OBJDIR)/%.d) -o $@
 
 LIBRARIES = $(addprefix $(LIBDIR)/, libnet4cpp.a)
 
 $(LIBRARIES) : $(OBJECTS)
 	@mkdir -p $(@D)
 	$(AR) $(ARFLAGS) $@ $^
-
 
 HEADERS = $(wildcard $(SRCDIR)/*.hpp $(SRCDIR)/*/*.hpp $(SRCDIR)/*/*/*.hpp)
 
@@ -56,7 +54,6 @@ INCLUDES = $(HEADERS:$(SRCDIR)/%.hpp=$(INCDIR)/%.hpp)
 $(INCDIR)/%.hpp: $(SRCDIR)/%.hpp
 	@mkdir -p $(@D)
 	cp $< $@
-
 
 GTESTDIR = ../googletest/googletest
 
@@ -78,7 +75,6 @@ $(GTEST_TARGET): $(OBJECTS) $(GTEST_OBJECTS)
 
 
 DEPENDENCIES = $(MAINS:$(SRCDIR)/%.cpp=$(OBJDIR)/%.d) $(OBJECTS:%.o=%.d) $(GTEST_OBJECTS:%.o=%.d)
-
 
 .PHONY: bin
 bin: $(TARGETS)

@@ -20,5 +20,11 @@ int main()
     auto test4 = "omQGMC65WBEzzZAX7H8l+g==258EAFA5-E914-47DA-95CA-C5AB0DC85B11_XXXXXX"s;
     std::cout << cryptic::sha1::base64(test4) << std::endl;
 
+    auto test5 = cryptic::base64::encode("Man"s);
+    std::cout << test5 << std::endl;
+
+    auto test6 = cryptic::base64::decode(test5);
+    std::cout << test6 << std::endl;
+
     return 0;
 }
