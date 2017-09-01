@@ -57,9 +57,9 @@ $(INCDIR)/%.hpp: $(SRCDIR)/%.hpp
 
 GTESTDIR = ../googletest/googletest
 
-#GTEST_TARGET = $(BINDIR)/test
+GTEST_TARGET = $(BINDIR)/test
 
-#GTESTLIB = $(GTESTDIR)/make/gtest_main.a
+GTESTLIB = $(GTESTDIR)/make/gtest_main.a
 
 GTEST_SOURCES = $(wildcard $(TESTDIR)/*.cpp $(TESTDIR)/*/*.cpp $(TESTDIR)/*/*/*.cpp $(TESTDIR)/*/*/*/*.cp)
 
