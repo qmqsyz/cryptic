@@ -15,6 +15,6 @@ cout << test2 << endl;
 ```
 Example #3
 ```c++
-auto test3 = cryptic::base64::decode(test5);
+auto test3 = cryptic::base64::decode(test2);
 cout << test3 << endl;
 ```
