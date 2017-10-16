@@ -37,15 +37,15 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 $(TARGETS): $(OBJECTS)
-	@mkdir -p $(SRCDIR)
+	@mkdir -p $(BINDIR)
 	@mkdir -p $(OBJDIR)
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(@:$(BINDIR)/%=$(SRCDIR)/%.cpp) $(OBJECTS) -MF $(@:$(BINDIR)/%=$(OBJDIR)/%.d) -o $@
 
-LIBRARIES = $(addprefix $(LIBDIR)/, libnet4cpp.a)
-
-$(LIBRARIES) : $(OBJECTS)
-	@mkdir -p $(@D)
-	$(AR) $(ARFLAGS) $@ $^
+# LIBRARIES = $(addprefix $(LIBDIR)/, libnet4cpp.a)
+#
+# $(LIBRARIES) : $(OBJECTS)
+# 	@mkdir -p $(@D)
+# 	$(AR) $(ARFLAGS) $@ $^
 
 HEADERS = $(wildcard $(SRCDIR)/*.hpp $(SRCDIR)/*/*.hpp $(SRCDIR)/*/*/*.hpp)
 
