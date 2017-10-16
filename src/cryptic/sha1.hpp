@@ -224,7 +224,7 @@ private:
     {
     	for(auto i = 0ull, j = 0ull; j < output.size(); ++i, j += 4ull)
         {
-    		output[j+3] = narrow<byte>(input[i]);
+    		output[j+3] = narrow<byte>(input[i] >>  0);
     		output[j+2] = narrow<byte>(input[i] >>  8);
     		output[j+1] = narrow<byte>(input[i] >> 16);
     		output[j+0] = narrow<byte>(input[i] >> 24);
