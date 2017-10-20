@@ -4,6 +4,12 @@
 
 using namespace std::string_literals;
 
+TEST(CrypticSHA224,base64)
+{
+    auto test1 = ""s;
+    EXPECT_EQ("d14a028c2a3a2bc9476102bb288234c415a2b01f828ea62ac5b3e42f"s, cryptic::sha224::hexadecimal(test1));
+}
+
 TEST(CrypticSHA256,base64)
 {
     auto test1 = ""s;

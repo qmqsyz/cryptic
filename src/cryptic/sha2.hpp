@@ -12,38 +12,25 @@ namespace cryptic {
 using namespace std;
 using namespace gsl;
 
-class sha256
+template<uint32_t H0, uint32_t H1, uint32_t H2, uint32_t H3, uint32_t H4, uint32_t H5, uint32_t H6, uint32_t H7, size_t N>
+class sha2
 {
 public:
 
-    sha256() noexcept :
-        m_message_digest{0x6a09e667u,
-                         0xbb67ae85u,
-                         0x3c6ef372u,
-                         0xa54ff53au,
-                         0x510e527fu,
-                         0x9b05688cu,
-                         0x1f83d9abu,
-                         0x5be0cd19u},
+    sha2() noexcept :
+        m_message_digest{H0,H1,H2,H3,H4,H5,H6,H7},
         m_message_length{0ull},
         m_buffer{}
     {}
 
-    sha256(span<const byte> message) : sha256()
+    sha2(span<const byte> message) : sha2()
     {
         hash(message);
     }
 
     void hash(span<const byte> message)
     {
-        m_message_digest= {0x6a09e667u,
-                           0xbb67ae85u,
-                           0x3c6ef372u,
-                           0xa54ff53au,
-                           0x510e527fu,
-                           0x9b05688cu,
-                           0x1f83d9abu,
-                           0x5be0cd19u};
+        m_message_digest = {H0,H1,H2,H3,H4,H5,H6,H7};
 
         m_message_length += 8 * message.size();
 
@@ -93,27 +80,21 @@ public:
 
     static string base64(span<const byte> message)
     {
-        auto hash = sha256{message};
+        auto hash = sha2{message};
         return hash.base64();
     }
 
     string hexadecimal()
     {
         auto ss = stringstream{};
-        ss << setw(8) << setfill('0') << hex << m_message_digest[0]
-           << setw(8) << setfill('0') << hex << m_message_digest[1]
-           << setw(8) << setfill('0') << hex << m_message_digest[2]
-           << setw(8) << setfill('0') << hex << m_message_digest[3]
-           << setw(8) << setfill('0') << hex << m_message_digest[4]
-           << setw(8) << setfill('0') << hex << m_message_digest[5]
-           << setw(8) << setfill('0') << hex << m_message_digest[6]
-           << setw(8) << setfill('0') << hex << m_message_digest[7];
+        for(auto i = 0; i < m_buffer.size(); ++i)
+            ss << setw(8) << setfill('0') << hex << m_message_digest[i];
         return ss.str();
     }
 
     static string hexadecimal(span<const byte> message)
     {
-        auto hash = sha256{message};
+        auto hash = sha2{message};
         return hash.hexadecimal();
     }
 
@@ -232,7 +213,11 @@ private:
 
     uint64_t m_message_length;
 
-    array<byte,20> m_buffer;
+    array<byte,N> m_buffer;
 };
+
+using sha224 = sha2<0xc1059ed8u,0x367cd507u,0x3070dd17u,0xf70e5939u,0xffc00b31u,0x68581511u,0x64f98fa7u,0xbefa4fa4u,7>;
+
+using sha256 = sha2<0x6a09e667u,0xbb67ae85u,0x3c6ef372u,0xa54ff53au,0x510e527fu,0x9b05688cu,0x1f83d9abu,0x5be0cd19u,8>;
 
 } // namespace cryptic
