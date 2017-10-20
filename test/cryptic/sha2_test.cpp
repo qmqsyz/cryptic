@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 #include <string_view>
-#include "cryptic/sha256.hpp"
+#include "cryptic/sha2.hpp"
 
 using namespace std::string_literals;
 
