@@ -1,5 +1,5 @@
 # cryptic
-SHA1 and base64 algorithms header only library implemented with C++17.
+SHA1, SHA2 and BASE64 algorithms header only library implemented with C++17.
 
 Usage is straight forward.
 
