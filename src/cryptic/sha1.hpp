@@ -52,20 +52,15 @@ public:
         *itr++ = byte{0b10000000};
         fill(itr, chunk.end(), byte{0b00000000});
 
-        if(distance(chunk.begin(), itr) < 56)
-        {
-            auto length = make_span(chunk).subspan<56>();
-            encode(length, m_message_length);
-            transform(chunk);
-        }
-        else
+        if(distance(chunk.begin(), itr) > 55)
         {
             transform(chunk);
             fill(chunk.begin(), itr, byte{0b00000000});
-            auto length = make_span(chunk).subspan<56>();
-            encode(length, m_message_length);
-            transform(chunk);
         }
+
+        auto length = make_span(chunk).subspan<56>();
+        encode(length, m_message_length);
+        transform(chunk);
     }
 
     const byte* data() noexcept

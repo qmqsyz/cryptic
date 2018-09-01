@@ -15,6 +15,8 @@ const auto test = R"(XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
 SHA1 benchmark against openssl crypto
 
+YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY
+
 )"s;
 
 auto cryptic_hsa1_test()
@@ -67,7 +69,7 @@ auto crypto_hsa1_test()
 
     for(auto i = 0u; i < SHA_DIGEST_LENGTH; ++i)
         std::clog << std::setw(2) << std::setfill('0') << std::hex << static_cast<unsigned>(digest[i]);
-    std::clog << '\n';
+    std::clog << std::dec << '\n';
 
     return ms.count();
 }
@@ -88,7 +90,7 @@ auto crypto_hsa256_test()
 
     for(auto i = 0u; i < SHA256_DIGEST_LENGTH; ++i)
         std::clog << std::setw(2) << std::setfill('0') << std::hex << static_cast<unsigned>(digest[i]);
-    std::clog << '\n';
+    std::clog << std::dec << '\n';
 
     return ms.count();
 }
@@ -98,14 +100,14 @@ int main()
     std::clog << "SHA1/256 benchmark against openssl crypto - "
               << "looping " << loops << " times:\n";
     auto const t1 = cryptic_hsa1_test();
-    std::clog << "cryptic SHA1: " << std::dec << t1 << " ms\n";
+    std::clog << "cryptic SHA1: " << t1 << " ms\n";
     auto const t2 = crypto_hsa1_test();
-    std::clog << "openssl crypto SHA1: " << std::dec << t1 << " ms\n";
+    std::clog << "openssl crypto SHA1: "<< t2 << " ms\n";
     std::clog << "cryptic SHA1 was " << t2/t1 << " times faster\n";
     auto const t3 = cryptic_hsa256_test();
-    std::clog << "cryptic SHA256: " << std::dec << t3 << " ms\n";
+    std::clog << "cryptic SHA256: "<< t3 << " ms\n";
     auto const t4 = crypto_hsa256_test();
-    std::clog << "openssl crypto SHA256: " << std::dec << t4 << " ms\n";
+    std::clog << "openssl crypto SHA256: " << t4 << " ms\n";
     std::clog << "cryptic SHA256 was " << t4/t3 << " times faster\n";
     return 0;
 }
