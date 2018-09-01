@@ -87,7 +87,7 @@ public:
     string hexadecimal()
     {
         auto ss = stringstream{};
-        for(auto i = 0; i < m_buffer.size(); ++i)
+        for(auto i = 0; i < N; ++i)
             ss << setw(8) << setfill('0') << hex << m_message_digest[i];
         return ss.str();
     }
@@ -213,7 +213,7 @@ private:
 
     uint64_t m_message_length;
 
-    array<byte,N> m_buffer;
+    array<byte,4*N> m_buffer;
 };
 
 using sha224 = sha2<0xc1059ed8u,0x367cd507u,0x3070dd17u,0xf70e5939u,0xffc00b31u,0x68581511u,0x64f98fa7u,0xbefa4fa4u,7>;
