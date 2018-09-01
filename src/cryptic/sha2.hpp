@@ -41,7 +41,7 @@ public:
 
         while(message.size() >= 64)
         {
-            const auto chunk = message.subspan(0, 64);
+            const auto chunk = message.first<64>();
             transform(chunk);
             message = message.subspan<64>();
         }
@@ -54,10 +54,10 @@ public:
         if(distance(chunk.begin(), itr) > 55)
         {
             transform(chunk);
-            fill(chunk.begin(), itr, byte{0b00000000});
+            fill_n(chunk.begin(), 56, byte{0b00000000});
         }
 
-        auto length = make_span(chunk).subspan<56>();
+        auto length = make_span(chunk).last<8>();
         encode(length, m_message_length);
         transform(chunk);
     }
@@ -109,10 +109,8 @@ private:
         return (number >> Rotation) bitor (number << (bits-Rotation));
     }
 
-    void transform(span<const byte> chunk) noexcept
+    void transform(span<const byte, 64> chunk) noexcept
     {
-        Expects(chunk.size() == 64);
-
         auto words = array<uint32_t,64>{};
 
         for(auto i = 0u, j = 0u; i < 16u; ++i, j += 4u)
