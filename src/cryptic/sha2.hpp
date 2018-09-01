@@ -18,9 +18,8 @@ class sha2
 public:
 
     sha2() noexcept :
-        m_message_digest{H0,H1,H2,H3,H4,H5,H6,H7},
         m_message_length{0ull},
-        m_buffer{}
+        m_message_digest{H0,H1,H2,H3,H4,H5,H6,H7}
     {}
 
     sha2(span<const byte> message) : sha2()
@@ -30,8 +29,14 @@ public:
 
     void hash(span<const byte> message)
     {
-        m_message_digest = {H0,H1,H2,H3,H4,H5,H6,H7};
-
+        m_message_digest[0] = H0;
+        m_message_digest[1] = H1;
+        m_message_digest[2] = H2;
+        m_message_digest[3] = H3;
+        m_message_digest[4] = H4;
+        m_message_digest[5] = H5;
+        m_message_digest[6] = H6;
+        m_message_digest[7] = H7;
         m_message_length += 8 * message.size();
 
         while(message.size() >= 64)
@@ -186,17 +191,6 @@ private:
     	output[0] = narrow<byte>(input >> 56);
     }
 
-    static void encode(span<byte> output, const span<uint32_t> input) noexcept
-    {
-    	for(auto i = 0ull, j = 0ull; j < output.size(); ++i, j += 4ull)
-        {
-    		output[j+3] = narrow<byte>(input[i] >>  0);
-    		output[j+2] = narrow<byte>(input[i] >>  8);
-    		output[j+1] = narrow<byte>(input[i] >> 16);
-    		output[j+0] = narrow<byte>(input[i] >> 24);
-    	}
-    }
-
     static constexpr array<uint32_t,64> k =
     {
         0x428a2f98u, 0x71374491u, 0xb5c0fbcfu, 0xe9b5dba5u, 0x3956c25bu, 0x59f111f1u, 0x923f82a4u, 0xab1c5ed5u,
@@ -209,9 +203,20 @@ private:
         0x748f82eeu, 0x78a5636fu, 0x84c87814u, 0x8cc70208u, 0x90befffau, 0xa4506cebu, 0xbef9a3f7u, 0xc67178f2u
     };
 
-    array<uint32_t,8> m_message_digest;
+    static void encode(span<byte> output, const span<uint32_t> input) noexcept
+    {
+    	for(auto i = 0ull, j = 0ull; j < output.size(); ++i, j += 4ull)
+        {
+    		output[j+3] = narrow<byte>(input[i]);
+    		output[j+2] = narrow<byte>(input[i] >>  8);
+    		output[j+1] = narrow<byte>(input[i] >> 16);
+    		output[j+0] = narrow<byte>(input[i] >> 24);
+    	}
+    }
 
     uint64_t m_message_length;
+
+    array<uint32_t,8> m_message_digest;
 
     array<byte,4*N> m_buffer;
 };

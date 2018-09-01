@@ -2,7 +2,7 @@
 #include <chrono>
 #include <iostream>
 #include "cryptic/sha1.hpp"
-#include "cryptic/sha256.hpp"
+#include "cryptic/sha2.hpp"
 
 #include <sys/types.h>
 #include <openssl/sha.h>
@@ -17,7 +17,7 @@ SHA1 benchmark against openssl crypto
 
 )"s;
 
-void cryptic_hsa1_test()
+auto cryptic_hsa1_test()
 {
     auto t1 = std::chrono::high_resolution_clock::now();
     auto sha1 = cryptic::sha1{};
@@ -29,11 +29,12 @@ void cryptic_hsa1_test()
     auto t2 = std::chrono::high_resolution_clock::now();
     auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1);
 
-    std::clog << "cryptic:" << std::dec << ms.count() << std::endl;
-    std::clog << cryptic::sha1::hexadecimal(test) << std::endl;
+    std::clog << cryptic::sha1::hexadecimal(test) << '\n';
+
+    return ms.count();
 }
 
-void cryptic_hsa256_test()
+auto cryptic_hsa256_test()
 {
     auto t1 = std::chrono::high_resolution_clock::now();
     auto sha256 = cryptic::sha256{};
@@ -45,11 +46,12 @@ void cryptic_hsa256_test()
     auto t2 = std::chrono::high_resolution_clock::now();
     auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1);
 
-    std::clog << "cryptic:" << std::dec << ms.count() << std::endl;
-    std::clog << cryptic::sha256::hexadecimal(test) << std::endl;
+    std::clog << cryptic::sha256::hexadecimal(test) << '\n';
+
+    return ms.count();
 }
 
-void crypto_hsa1_test()
+auto crypto_hsa1_test()
 {
     auto t1 = std::chrono::high_resolution_clock::now();
     SHA_CTX ctx;
@@ -63,14 +65,14 @@ void crypto_hsa1_test()
     auto t2 = std::chrono::high_resolution_clock::now();
     auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1);
 
-    std::clog << "crypto:" << std::dec << ms.count() << std::endl;
-
     for(auto i = 0u; i < SHA_DIGEST_LENGTH; ++i)
         std::clog << std::setw(2) << std::setfill('0') << std::hex << static_cast<unsigned>(digest[i]);
     std::clog << '\n';
+
+    return ms.count();
 }
 
-void crypto_hsa256_test()
+auto crypto_hsa256_test()
 {
     auto t1 = std::chrono::high_resolution_clock::now();
     SHA256_CTX ctx;
@@ -84,18 +86,26 @@ void crypto_hsa256_test()
     auto t2 = std::chrono::high_resolution_clock::now();
     auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1);
 
-    std::clog << "crypto:" << std::dec << ms.count() << std::endl;
-
     for(auto i = 0u; i < SHA256_DIGEST_LENGTH; ++i)
         std::clog << std::setw(2) << std::setfill('0') << std::hex << static_cast<unsigned>(digest[i]);
     std::clog << '\n';
+
+    return ms.count();
 }
 
 int main()
 {
-    cryptic_hsa1_test();
-    crypto_hsa1_test();
-    cryptic_hsa256_test();
-    crypto_hsa256_test();
+    std::clog << "SHA1/256 benchmark against openssl crypto - "
+              << "looping " << loops << " times:\n";
+    auto const t1 = cryptic_hsa1_test();
+    std::clog << "cryptic SHA1: " << std::dec << t1 << " ms\n";
+    auto const t2 = crypto_hsa1_test();
+    std::clog << "openssl crypto SHA1: " << std::dec << t1 << " ms\n";
+    std::clog << "cryptic SHA1 was " << t2/t1 << " times faster\n";
+    auto const t3 = cryptic_hsa256_test();
+    std::clog << "cryptic SHA256: " << std::dec << t3 << " ms\n";
+    auto const t4 = crypto_hsa256_test();
+    std::clog << "openssl crypto SHA256: " << std::dec << t4 << " ms\n";
+    std::clog << "cryptic SHA256 was " << t4/t3 << " times faster\n";
     return 0;
 }

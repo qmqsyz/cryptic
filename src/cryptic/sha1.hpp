@@ -17,12 +17,12 @@ class sha1
 public:
 
     sha1() noexcept :
+        m_message_length{0ull},
         m_message_digest{0x67452301u,
                          0xEFCDAB89u,
                          0x98BADCFEu,
                          0x10325476u,
                          0xC3D2E1F0u},
-        m_message_length{0ull},
         m_buffer{}
     {}
 
@@ -33,12 +33,11 @@ public:
 
     void hash(span<const byte> message)
     {
-        m_message_digest = {0x67452301u,
-                            0xEFCDAB89u,
-                            0x98BADCFEu,
-                            0x10325476u,
-                            0xC3D2E1F0u};
-
+        m_message_digest[0] = 0x67452301u;
+        m_message_digest[1] = 0xEFCDAB89u;
+        m_message_digest[2] = 0x98BADCFEu;
+        m_message_digest[3] = 0x10325476u;
+        m_message_digest[4] = 0xC3D2E1F0u;
         m_message_length += 8 * message.size();
 
         while(message.size() >= 64)
@@ -224,16 +223,16 @@ private:
     {
     	for(auto i = 0ull, j = 0ull; j < output.size(); ++i, j += 4ull)
         {
-    		output[j+3] = narrow<byte>(input[i] >>  0);
+    		output[j+3] = narrow<byte>(input[i]);
     		output[j+2] = narrow<byte>(input[i] >>  8);
     		output[j+1] = narrow<byte>(input[i] >> 16);
     		output[j+0] = narrow<byte>(input[i] >> 24);
     	}
     }
 
-    array<uint32_t,5> m_message_digest;
-
     uint64_t m_message_length;
+
+    array<uint32_t,5> m_message_digest;
 
     array<byte,20> m_buffer;
 };
