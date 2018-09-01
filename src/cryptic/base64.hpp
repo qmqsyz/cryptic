@@ -2,20 +2,19 @@
 #include <string>
 #include <algorithm>
 #include "gsl/span.hpp"
-#include "gsl/assert.hpp"
 
 namespace cryptic::base64 {
 
     inline constexpr char to_character_set(std::byte b)
     {
-        assert(b < std::byte{65});
+        Ensures(b < std::byte{65});
         constexpr char set[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
         return set[std::to_integer<std::size_t>(b)];
     }
 
     inline constexpr char to_index(char c)
     {
-        assert((c >= 'A' and c <= 'Z') or
+        Ensures((c >= 'A' and c <= 'Z') or
                (c >= 'a' and c <= 'z') or
                (c >= '0' and c <= '9') or
                 c == '+' or c == '/' or c == '=');
