@@ -31,14 +31,14 @@ cout << test4 << endl;
 
 ./bin/benchmark
 
-SHA1 & SHA256 benchmark against openssl crypto - looping 5000000 times:
-372483deb82c3a1415b049c5934615e91a734ee3
-cryptic SHA1: 3555 ms
-372483deb82c3a1415b049c5934615e91a734ee3
-openssl crypto SHA1: 13046 ms
-cryptic SHA1 was 3 times faster
-02165c33ed6e9b170deadb2362498878fd4fb7eb620fefffd48fd9adb9ab1e0d
-cryptic SHA256: 5585 ms
-02165c33ed6e9b170deadb2362498878fd4fb7eb620fefffd48fd9adb9ab1e0d
-openssl crypto SHA256: 30688 ms
-cryptic SHA256 was 5 times faster
+SHA1 & SHA256 benchmark against openssl crypto - looping 5000000 times:  
+372483deb82c3a1415b049c5934615e91a734ee3  
+cryptic SHA1: 3555 ms  
+372483deb82c3a1415b049c5934615e91a734ee3  
+openssl crypto SHA1: 13046 ms  
+cryptic SHA1 was 3 times faster  
+02165c33ed6e9b170deadb2362498878fd4fb7eb620fefffd48fd9adb9ab1e0d  
+cryptic SHA256: 5585 ms  
+02165c33ed6e9b170deadb2362498878fd4fb7eb620fefffd48fd9adb9ab1e0d  
+openssl crypto SHA256: 30688 ms  
+cryptic SHA256 was 5 times faster  
