@@ -10,18 +10,18 @@ cout << cryptic::sha1::base64(test1) << endl;
 ```
 Example #2
 ```c++
-auto test1 = "The quick brown fox jumps over the lazy dog"s;
-cout << cryptic::sha256::hexadecimal(test1) << endl;
+auto test2 = "The quick brown fox jumps over the lazy dog"s;
+cout << cryptic::sha256::hexadecimal(test2) << endl;
 ```
 Example #3
 ```c++
-auto test2 = cryptic::base64::encode("Man"s);
-cout << test2 << endl;
+auto test3 = cryptic::base64::encode("Man"s);
+cout << test3 << endl;
 ```
 Example #4
 ```c++
-auto test3 = cryptic::base64::decode(test2);
-cout << test3 << endl;
+auto test4 = cryptic::base64::decode(test2);
+cout << test4 << endl;
 ```
 
 ## Benchmarking
@@ -30,6 +30,7 @@ cout << test3 << endl;
 - I assume the better performance is mainly the result of clang++ complier's optimisation and the usage of some advanced c++ data structures i.e. gsl::span.
 
 ./bin/benchmark
+
 SHA1 & SHA256 benchmark against openssl crypto - looping 5000000 times:
 372483deb82c3a1415b049c5934615e91a734ee3
 cryptic SHA1: 3555 ms
