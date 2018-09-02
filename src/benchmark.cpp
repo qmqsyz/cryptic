@@ -25,15 +25,15 @@ YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY
 static auto cryptic_hsa1_test()
 {
     const auto test = test_case();
-    auto t1 = std::chrono::high_resolution_clock::now();
+    const auto t1 = std::chrono::high_resolution_clock::now();
     auto sha1 = cryptic::sha1{};
     for(auto i = loops; i; --i)
     {
         sha1.hash(test);
         auto hash = sha1.data();
     }
-    auto t2 = std::chrono::high_resolution_clock::now();
-    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1);
+    const auto t2 = std::chrono::high_resolution_clock::now();
+    const auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1);
 
     std::clog << cryptic::sha1::hexadecimal(test) << '\n';
 
