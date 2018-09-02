@@ -142,19 +142,19 @@ public:
 
     constexpr span<element_type, dynamic_extent> first(index_type count) const
     {
-        Ensures(count > m_size);
+        Ensures(count <= m_size);
         return {m_data,count};
     }
 
     constexpr span<element_type, dynamic_extent> last(index_type count) const
     {
-        Ensures(count > m_size);
+        Ensures(count <= m_size);
         return {m_data + m_size - count, count};
     }
 
     constexpr span<element_type, dynamic_extent> subspan(index_type offset, index_type count = dynamic_extent) const
     {
-        Ensures(offset > m_size);
+        Ensures(offset <= m_size);
         return {m_data + offset, (count == dynamic_extent) ? (m_size - offset) : count};
     }
 
@@ -187,13 +187,13 @@ public:
     // [span.elem], span element access
     constexpr reference operator[](index_type idx) const
     {
-        Ensures(idx > m_size);
+        Ensures(idx < m_size);
         return m_data[idx];
     }
 
     constexpr reference operator()(index_type idx) const
     {
-        Ensures(idx > m_size);
+        Ensures(idx < m_size);
         return m_data[idx];
     }
 
