@@ -104,7 +104,7 @@ static auto crypto_hsa256_test()
 
 int main()
 {
-    std::clog << "SHA1/256 benchmark against openssl crypto - "
+    std::clog << "SHA1 & SHA256 benchmark against openssl crypto - "
               << "looping " << loops << " times:\n";
     auto const t1 = cryptic_hsa1_test();
     std::clog << "cryptic SHA1: " << t1 << " ms\n";

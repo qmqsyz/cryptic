@@ -6,14 +6,11 @@ CXXFLAGS += -std=c++1z
 CXXFLAGS +=  -Wextra
 CXXFLAGS +=  -Wno-c++98-compat -Wno-c++98-compat-pedantic -Wno-c++98-c++11-compat-binary-literal -Wno-padded -Wno-reserved-id-macro
 CXXFLAGS += -nostdinc++ -I/usr/local/include/c++/v1
-CXXFLAGS += -I../openssl-build/include
-CXXFLAGS += -I../openssl/include
 CXXFLAGS += -DNDEBUG=1 -O3
 
 LDFLAGS = -nostdlib
 LDFLAGS += -L/usr/lib
 LDFLAGS += -L/usr/local/lib
-LDFLAGS += -L../openssl-build
 LDFLAGS += -lc++ -lSystem -lcrypto
 
 SRCDIR = src
@@ -27,6 +24,9 @@ BINDIR = bin
 LIBDIR = lib
 
 INCDIR = include
+
+GTESTDIR = ../googletest/googletest
+
 
 TARGETS = $(addprefix $(BINDIR)/, example benchmark)
 
@@ -59,7 +59,6 @@ $(INCDIR)/%.hpp: $(SRCDIR)/%.hpp
 	@mkdir -p $(@D)
 	cp $< $@
 
-GTESTDIR = ../googletest/googletest
 
 GTEST_TARGET = $(BINDIR)/test
 
