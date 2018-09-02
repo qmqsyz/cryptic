@@ -23,12 +23,12 @@ public:
         m_message_digest{H0,H1,H2,H3,H4,H5,H6,H7}
     {}
 
-    sha2(span<const byte> message) : sha2()
+    sha2(span<const byte> message) noexcept : sha2()
     {
         hash(message);
     }
 
-    void hash(span<const byte> message)
+    void hash(span<const byte> message) noexcept
     {
         m_message_digest[0] = H0;
         m_message_digest[1] = H1;
@@ -69,7 +69,7 @@ public:
         return m_buffer.data();
     }
 
-    constexpr size_type size() const noexcept
+    constexpr size_type size() const
     {
         return m_buffer.size();
     }
@@ -108,7 +108,7 @@ private:
         static_assert(is_unsigned_v<Unsigned>);
         constexpr auto bits = numeric_limits<Unsigned>::digits;
         static_assert(Rotation <= bits);
-        return (number >> Rotation) bitor (number << (bits-Rotation));
+        return (number >> Rotation) bitor (number << (bits - Rotation));
     }
 
     void transform(span<const byte, 64> chunk) noexcept

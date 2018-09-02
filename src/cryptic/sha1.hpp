@@ -27,12 +27,12 @@ public:
         m_buffer{}
     {}
 
-    sha1(span<const byte> message) : sha1()
+    sha1(span<const byte> message) noexcept : sha1()
     {
         hash(message);
     }
 
-    void hash(span<const byte> message)
+    void hash(span<const byte> message) noexcept
     {
         m_message_digest[0] = 0x67452301u;
         m_message_digest[1] = 0xEFCDAB89u;
@@ -70,7 +70,7 @@ public:
         return m_buffer.data();
     }
 
-    constexpr size_type size() const noexcept
+    constexpr size_type size() const
     {
         return m_buffer.size();
     }
@@ -112,7 +112,7 @@ private:
         static_assert(is_unsigned_v<Unsigned>);
         constexpr auto bits = numeric_limits<Unsigned>::digits;
         static_assert(Rotation <= bits);
-        return (number << Rotation) bitor (number >> (bits-Rotation));
+        return (number << Rotation) bitor (number >> (bits - Rotation));
     }
 
     void transform(span<const byte, 64> chunk) noexcept
@@ -198,7 +198,7 @@ private:
     static constexpr byte narrow(Integer number)
     {
         static_assert(is_integral_v<Integer>);
-        static_assert(numeric_limits<Type>::digits<numeric_limits<Integer>::digits);
+        static_assert(numeric_limits<Type>::digits < numeric_limits<Integer>::digits);
         return static_cast<Type>(number bitand 0b11111111);
     }
 
