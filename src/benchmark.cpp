@@ -1,4 +1,8 @@
 
+// Copyright (c) 2017 Kaius Ruokonen
+// Distributed under the MIT software license
+// See LICENCE file or https://opensource.org/licenses/MIT
+
 #include <chrono>
 #include <iostream>
 #include "cryptic/sha1.hpp"
