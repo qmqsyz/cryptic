@@ -11,16 +11,20 @@ using namespace std::string_literals;
 
 constexpr auto loops = 5'000'000ul;
 
-const auto test = R"(XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+static auto test_case()
+{
+return R"(XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
 SHA1 benchmark against openssl crypto
 
 YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY
 
 )"s;
+}
 
-auto cryptic_hsa1_test()
+static auto cryptic_hsa1_test()
 {
+    const auto test = test_case();
     auto t1 = std::chrono::high_resolution_clock::now();
     auto sha1 = cryptic::sha1{};
     for(auto i = loops; i; --i)
@@ -36,8 +40,9 @@ auto cryptic_hsa1_test()
     return ms.count();
 }
 
-auto cryptic_hsa256_test()
+static auto cryptic_hsa256_test()
 {
+    const auto test = test_case();
     auto t1 = std::chrono::high_resolution_clock::now();
     auto sha256 = cryptic::sha256{};
     for(auto i = loops; i; --i)
@@ -53,15 +58,16 @@ auto cryptic_hsa256_test()
     return ms.count();
 }
 
-auto crypto_hsa1_test()
+static auto crypto_hsa1_test()
 {
+    const auto test = test_case();
     auto t1 = std::chrono::high_resolution_clock::now();
     SHA_CTX ctx;
     unsigned char digest[SHA_DIGEST_LENGTH];
     for(auto i = loops; i; --i)
     {
         SHA1_Init(&ctx);
-        SHA1_Update(&ctx, (const unsigned char*)test.c_str(), test.size());
+        SHA1_Update(&ctx, static_cast<const char*>(test.c_str()), test.size());
         SHA1_Final(digest, &ctx);
     }
     auto t2 = std::chrono::high_resolution_clock::now();
@@ -74,15 +80,16 @@ auto crypto_hsa1_test()
     return ms.count();
 }
 
-auto crypto_hsa256_test()
+static auto crypto_hsa256_test()
 {
+    const auto test = test_case();
     auto t1 = std::chrono::high_resolution_clock::now();
     SHA256_CTX ctx;
     unsigned char digest[SHA256_DIGEST_LENGTH];
     for(auto i = loops; i; --i)
     {
         SHA256_Init(&ctx);
-        SHA256_Update(&ctx, (const unsigned char*)test.c_str(), test.size());
+        SHA256_Update(&ctx, static_cast<const char*>(test.c_str()), test.size());
         SHA256_Final(digest, &ctx);
     }
     auto t2 = std::chrono::high_resolution_clock::now();

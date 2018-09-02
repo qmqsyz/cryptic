@@ -73,13 +73,13 @@ namespace cryptic::base64 {
                  index3 = to_index(source[2]),
                  index4 = to_index(source[3]);
 
-            decoded.push_back((index1 << 2) | (index2 >> 4));
+            decoded.push_back(static_cast<char>((index1 << 2) | (index2 >> 4)));
 
             if(index3 < 64)
-                decoded.push_back((index2 << 4) | (index3 >> 2));
+                decoded.push_back(static_cast<char>((index2 << 4) | (index3 >> 2)));
 
             if(index4 < 64)
-                decoded.push_back((index3 << 6) | index4);
+                decoded.push_back(static_cast<char>((index3 << 6) | index4));
 
             source.remove_prefix(std::min(4ul,source.size()));
         }

@@ -15,6 +15,8 @@ class sha1
 {
 public:
 
+    using size_type = std::uint64_t;
+
     sha1() noexcept :
         m_message_length{0ull},
         m_message_digest{0x67452301u,
@@ -37,9 +39,9 @@ public:
         m_message_digest[2] = 0x98BADCFEu;
         m_message_digest[3] = 0x10325476u;
         m_message_digest[4] = 0xC3D2E1F0u;
-        m_message_length += 8 * message.size();
+        m_message_length += 8ull * static_cast<size_type>(message.size());
 
-        while(message.size() >= 64)
+        while(message.size() >= 64u)
         {
             const auto chunk = message.first<64>();
             transform(chunk);
@@ -68,14 +70,15 @@ public:
         return m_buffer.data();
     }
 
-    constexpr size_t size() const noexcept
+    constexpr size_type size() const noexcept
     {
         return m_buffer.size();
     }
 
     string base64()
     {
-        return base64::encode(make_span(data(), size()));
+        data();
+        return base64::encode(m_buffer);
     }
 
     static string base64(span<const byte> message)
@@ -87,11 +90,11 @@ public:
     string hexadecimal()
     {
         auto ss = stringstream{};
-        ss << setw(8) << setfill('0') << hex << m_message_digest[0]
-           << setw(8) << setfill('0') << hex << m_message_digest[1]
-           << setw(8) << setfill('0') << hex << m_message_digest[2]
-           << setw(8) << setfill('0') << hex << m_message_digest[3]
-           << setw(8) << setfill('0') << hex << m_message_digest[4];
+        ss << setw(8) << setfill('0') << hex << m_message_digest[0u]
+           << setw(8) << setfill('0') << hex << m_message_digest[1u]
+           << setw(8) << setfill('0') << hex << m_message_digest[2u]
+           << setw(8) << setfill('0') << hex << m_message_digest[3u]
+           << setw(8) << setfill('0') << hex << m_message_digest[4u];
         return ss.str();
     }
 
@@ -199,21 +202,21 @@ private:
         return static_cast<Type>(number bitand 0b11111111);
     }
 
-    static void encode(span<byte> output, const uint64_t input) noexcept
+    static void encode(span<byte> output, const size_type length) noexcept
     {
-    	output[7] = narrow<byte>(input >>  0);
-    	output[6] = narrow<byte>(input >>  8);
-    	output[5] = narrow<byte>(input >> 16);
-    	output[4] = narrow<byte>(input >> 24);
-    	output[3] = narrow<byte>(input >> 32);
-    	output[2] = narrow<byte>(input >> 40);
-    	output[1] = narrow<byte>(input >> 48);
-    	output[0] = narrow<byte>(input >> 56);
+    	output[7] = narrow<byte>(length >>  0);
+    	output[6] = narrow<byte>(length >>  8);
+    	output[5] = narrow<byte>(length >> 16);
+    	output[4] = narrow<byte>(length >> 24);
+    	output[3] = narrow<byte>(length >> 32);
+    	output[2] = narrow<byte>(length >> 40);
+    	output[1] = narrow<byte>(length >> 48);
+    	output[0] = narrow<byte>(length >> 56);
     }
 
     static void encode(span<byte> output, const span<uint32_t> input) noexcept
     {
-    	for(auto i = 0ull, j = 0ull; j < output.size(); ++i, j += 4ull)
+    	for(auto i = 0, j = 0; j < output.size(); ++i, j += 4)
         {
     		output[j+3] = narrow<byte>(input[i]);
     		output[j+2] = narrow<byte>(input[i] >>  8);
@@ -222,7 +225,7 @@ private:
     	}
     }
 
-    uint64_t m_message_length;
+    size_type m_message_length;
 
     array<uint32_t,5> m_message_digest;
 

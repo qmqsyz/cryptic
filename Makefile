@@ -1,10 +1,14 @@
 #CXX = /Library/Developer/CommandLineTools/usr/bin/clang
 CXX = /usr/local/bin/clang
 
-CXXFLAGS = -I$(SRCDIR) -std=c++1z -D DEBUG=1 -O3 -MMD
+CXXFLAGS = -I$(SRCDIR) -MMD
+CXXFLAGS += -std=c++1z
+CXXFLAGS +=  -Wextra
+CXXFLAGS +=  -Wno-c++98-compat -Wno-c++98-compat-pedantic -Wno-c++98-c++11-compat-binary-literal -Wno-padded -Wno-reserved-id-macro
 CXXFLAGS += -nostdinc++ -I/usr/local/include/c++/v1
 CXXFLAGS += -I../openssl-build/include
 CXXFLAGS += -I../openssl/include
+CXXFLAGS += -DNDEBUG=1 -O3
 
 LDFLAGS = -nostdlib
 LDFLAGS += -L/usr/lib
@@ -67,7 +71,7 @@ GTEST_OBJECTS = $(GTEST_SOURCES:$(TESTDIR)/%.cpp=$(OBJDIR)/$(TESTDIR)/%.o)
 
 $(OBJDIR)/$(TESTDIR)/%.o: $(TESTDIR)/%.cpp
 	@mkdir -p $(@D)
-	$(CXX) -I$(GTESTDIR)/include/ $(CXXFLAGS) -c $< -o $@
+	$(CXX) -I$(GTESTDIR)/include/ --system-header-prefix=gtest $(CXXFLAGS) -c $< -o $@
 
 $(GTEST_TARGET): $(OBJECTS) $(GTEST_OBJECTS)
 	@mkdir -p $(@D)

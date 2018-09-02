@@ -20,7 +20,7 @@ struct __span_size
         return Extent;
     }
     template<typename T>
-    auto& operator = (T s)
+    auto& operator = (T)
     {
         return *this;
     }
