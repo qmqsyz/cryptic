@@ -4,7 +4,6 @@
 #include <iomanip>
 #include <algorithm>
 #include "gsl/span.hpp"
-#include "gsl/assert.hpp"
 #include "cryptic/base64.hpp"
 
 namespace cryptic {
