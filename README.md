@@ -20,7 +20,7 @@ cout << test3 << endl;
 ```
 Example #4
 ```c++
-auto test4 = cryptic::base64::decode(test2);
+auto test4 = cryptic::base64::decode(test3);
 cout << test4 << endl;
 ```
 
