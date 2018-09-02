@@ -41,7 +41,7 @@ public:
         m_message_digest[4] = 0xC3D2E1F0u;
         m_message_length += 8ull * static_cast<size_type>(message.size());
 
-        while(message.size() >= 64u)
+        while(message.size() >= 64)
         {
             const auto chunk = message.first<64>();
             transform(chunk);
