@@ -25,8 +25,8 @@ cout << test4 << endl;
 ```
 
 ## Benchmarking
-- SHA1 implementation seems to around 3 times faster than openssl's implementation of SHA1.
-- SHA256 implementation seems to around 5 times faster than openssl's implementation of SHA256.
+- SHA1 implementation seems to be around 3 times faster than openssl's implementation of SHA1.
+- SHA256 implementation seems to be around 5 times faster than openssl's implementation of SHA256.
 - I assume the better performance is mainly the result of clang++ complier's optimisation and the usage of some advanced c++ data structures i.e. gsl::span.
 
 ./bin/benchmark
