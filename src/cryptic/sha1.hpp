@@ -53,7 +53,7 @@ public:
         *itr++ = byte{0b10000000};
         fill(itr, chunk.end(), byte{0b00000000});
 
-        if(distance(chunk.begin(), itr) > 55)
+        if(distance(itr, chunk.end()) < 8)
         {
             transform(chunk);
             fill_n(chunk.begin(), 56, byte{0b00000000});
