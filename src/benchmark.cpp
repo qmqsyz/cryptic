@@ -34,7 +34,6 @@ static auto cryptic_hsa1_test()
     for(auto i = loops; i; --i)
     {
         sha1.hash(test);
-        auto hash = sha1.data();
     }
     const auto t2 = std::chrono::high_resolution_clock::now();
     const auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1);
@@ -52,7 +51,6 @@ static auto cryptic_hsa256_test()
     for(auto i = loops; i; --i)
     {
         sha256.hash(test);
-        auto hash = sha256.data();
     }
     const auto t2 = std::chrono::high_resolution_clock::now();
     const auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1);
