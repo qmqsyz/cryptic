@@ -82,15 +82,15 @@ public:
     {}
 
     template <size_t N>
-    constexpr span(const std::array<std::remove_const_t<element_type>, N>& arr) : m_data{arr.data()}, m_size{N}
+    constexpr span(const std::array<std::remove_const_t<element_type>, N>& arr) : m_data{const_cast<element_type*>(arr.data())}, m_size{N}
     {}
 
     template <class Container>
-    constexpr span(Container& cont) : m_data{reinterpret_cast<ElementType*>(cont.data())}, m_size{cont.size()}
+    constexpr span(Container& cont) : m_data{reinterpret_cast<element_type*>(cont.data())}, m_size{cont.size()}
     {}
 
     template <class Container>
-    constexpr span(const Container& cont) : m_data{reinterpret_cast<const ElementType*>(cont.data())}, m_size{cont.size()}
+    constexpr span(const Container& cont) : m_data{reinterpret_cast<const element_type*>(cont.data())}, m_size{cont.size()}
     {}
 
     // template <class Container> span(const Container&&) = delete;
@@ -102,7 +102,6 @@ public:
     template <class OtherElementType, ptrdiff_t OtherExtent>
     constexpr span(const span<OtherElementType, OtherExtent>& other) : span<ElementType,Extent>{other.data(), other.size()}
     {
-        using std::experimental::is_convertible_v;
         static_assert(std::is_convertible_v<OtherElementType,ElementType>, "Not convertible");
         static_assert(OtherExtent <= Extent, "Size mismatch");
     }
@@ -110,9 +109,8 @@ public:
     template <class OtherElementType, ptrdiff_t OtherExtent>
     constexpr span(span<OtherElementType, OtherExtent>&& other) : span<ElementType,Extent>{other.data(), other.size()}
     {
-        using std::experimental::is_convertible_v;
         static_assert(std::is_convertible_v<OtherElementType,ElementType>, "Not convertible");
-        static_assert(OtherExtent <= Extent, "Size mismatch");
+        static_assert(Extent == dynamic_extent || OtherExtent <= Extent, "Size mismatch");
     }
 
     ~span() noexcept = default;
