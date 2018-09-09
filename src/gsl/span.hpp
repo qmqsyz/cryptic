@@ -64,33 +64,49 @@ public:
     static constexpr index_type extent = Extent;
 
     // [span.cons], span constructors, copy, assignment, and destructor constexpr span();
-    constexpr span(std::nullptr_t) : m_data{nullptr}, m_size{0}
+    constexpr span(std::nullptr_t) :
+        m_data{nullptr},
+        m_size{0}
     {}
 
-    constexpr span(pointer ptr, index_type count) : m_data{ptr}, m_size{count}
+    constexpr span(pointer ptr, index_type count) :
+        m_data{ptr},
+        m_size{count}
     {}
 
-    constexpr span(pointer firstElem, pointer lastElem) : m_data{firstElem}, m_size{std::distance(firstElem,lastElem)}
+    constexpr span(pointer firstElem, pointer lastElem) :
+        m_data{firstElem},
+        m_size{std::distance(firstElem,lastElem)}
     {}
 
     template <size_t N>
-    constexpr span(element_type (&arr)[N]) : m_data{arr}, m_size{N}
+    constexpr span(element_type (&arr)[N]) :
+        m_data{arr},
+        m_size{N}
     {}
 
     template <size_t N>
-    constexpr span(std::array<std::remove_const_t<element_type>, N>& arr) : m_data{arr.data()}, m_size{N}
+    constexpr span(std::array<std::remove_const_t<element_type>, N>& arr) :
+        m_data{arr.data()},
+        m_size{N}
     {}
 
     template <size_t N>
-    constexpr span(const std::array<std::remove_const_t<element_type>, N>& arr) : m_data{const_cast<element_type*>(arr.data())}, m_size{N}
+    constexpr span(const std::array<std::remove_const_t<element_type>, N>& arr) :
+        m_data{const_cast<element_type*>(arr.data())},
+        m_size{N}
     {}
 
     template <class Container>
-    constexpr span(Container& cont) : m_data{reinterpret_cast<element_type*>(cont.data())}, m_size{cont.size()}
+    constexpr span(Container& cont) :
+        m_data{reinterpret_cast<element_type*>(cont.data())},
+        m_size{cont.size()}
     {}
 
     template <class Container>
-    constexpr span(const Container& cont) : m_data{reinterpret_cast<const element_type*>(cont.data())}, m_size{cont.size()}
+    constexpr span(const Container& cont) :
+        m_data{const_cast<element_type*>(reinterpret_cast<const element_type*>(cont.data()))},
+        m_size{cont.size()}
     {}
 
     // template <class Container> span(const Container&&) = delete;
@@ -100,14 +116,16 @@ public:
     constexpr span(span&& other) noexcept = default;
 
     template <class OtherElementType, ptrdiff_t OtherExtent>
-    constexpr span(const span<OtherElementType, OtherExtent>& other) : span<ElementType,Extent>{other.data(), other.size()}
+    constexpr span(const span<OtherElementType, OtherExtent>& other) :
+        span<ElementType,Extent>{other.data(), other.size()}
     {
         static_assert(std::is_convertible_v<OtherElementType,ElementType>, "Not convertible");
         static_assert(OtherExtent <= Extent, "Size mismatch");
     }
 
     template <class OtherElementType, ptrdiff_t OtherExtent>
-    constexpr span(span<OtherElementType, OtherExtent>&& other) : span<ElementType,Extent>{other.data(), other.size()}
+    constexpr span(span<OtherElementType, OtherExtent>&& other) :
+        span<ElementType,Extent>{other.data(), other.size()}
     {
         static_assert(std::is_convertible_v<OtherElementType,ElementType>, "Not convertible");
         static_assert(Extent == dynamic_extent || OtherExtent <= Extent, "Size mismatch");
