@@ -101,13 +101,19 @@ public:
     constexpr span(Container& cont) :
         m_data{reinterpret_cast<pointer>(cont.data())},
         m_size{cont.size()}
-    {}
+    {
+        static_assert(std::is_same_v<const std::byte,element_type> ||
+                      std::is_convertible_v<typename Container::pointer,pointer>, "Not convertible");
+    }
 
     template <class Container>
     constexpr span(const Container& cont) :
         m_data{reinterpret_cast<pointer>(cont.data())},
         m_size{cont.size()}
-    {}
+    {
+        static_assert(std::is_same_v<const std::byte,element_type> ||
+                      std::is_convertible_v<typename Container::const_pointer,pointer>, "Not convertible");
+    }
 
     // template <class Container> span(const Container&&) = delete;
 
