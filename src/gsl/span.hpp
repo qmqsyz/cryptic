@@ -99,13 +99,13 @@ public:
 
     template <class Container>
     constexpr span(Container& cont) :
-        m_data{cont.data()},
+        m_data{reinterpret_cast<pointer>(cont.data())},
         m_size{cont.size()}
     {}
 
     template <class Container>
     constexpr span(const Container& cont) :
-        m_data{cont.data()},
+        m_data{reinterpret_cast<pointer>(cont.data())},
         m_size{cont.size()}
     {}
 
