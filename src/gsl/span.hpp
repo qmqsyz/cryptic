@@ -93,19 +93,19 @@ public:
 
     template <size_t N>
     constexpr span(const std::array<std::remove_const_t<element_type>, N>& arr) :
-        m_data{const_cast<element_type*>(arr.data())},
+        m_data{arr.data()},
         m_size{N}
     {}
 
     template <class Container>
     constexpr span(Container& cont) :
-        m_data{reinterpret_cast<element_type*>(cont.data())},
+        m_data{cont.data()},
         m_size{cont.size()}
     {}
 
     template <class Container>
     constexpr span(const Container& cont) :
-        m_data{const_cast<element_type*>(reinterpret_cast<const element_type*>(cont.data()))},
+        m_data{cont.data()},
         m_size{cont.size()}
     {}
 
@@ -308,14 +308,18 @@ constexpr bool operator>=(const span<ElementType, Extent>& l, const span<Element
 }
 
 // [span.objectrep], views of object representation
-template <class ElementType, std::ptrdiff_t Extent>
-constexpr span<const std::byte, ((Extent == dynamic_extent) ? dynamic_extent : (Extent * sizeof(ElementType)))> as_bytes(span<ElementType, Extent> s) noexcept
+// template <class ElementType, std::ptrdiff_t Extentt>
+// span<const std::byte, ((Extent == dynamic_extent) ? dynamic_extent : (Extent * sizeof(ElementType)))> as_bytes(span<const ElementType, Extent> s) noexcept
+template <class ElementType>
+span<const std::byte> as_bytes(span<const ElementType> s) noexcept
 {
     return {reinterpret_cast<const std::byte*>(s.data()), s.length_bytes()};
 }
 
-template <class ElementType, std::ptrdiff_t Extent>
-constexpr span<std::byte, ((Extent == dynamic_extent) ? dynamic_extent : (Extent * sizeof(ElementType)))> as_writeable_bytes(span<ElementType, Extent> s) noexcept
+// template <class ElementType, std::ptrdiff_t Extent = dynamic_extent>
+// span<std::byte, ((Extent == dynamic_extent) ? dynamic_extent : (Extent * sizeof(ElementType)))> as_writeable_bytes(span<ElementType, Extent> s) noexcept
+template <class ElementType>
+span<std::byte> as_writeable_bytes(span<ElementType> s) noexcept
 {
     return {reinterpret_cast<std::byte*>(s.data()), s.length_bytes()};
 }
@@ -337,7 +341,7 @@ span<ElementType> make_span(ElementType* firstElem, ElementType* lastElem)
 }
 
 template <class ElementType, std::size_t N>
-span<ElementType, N> make_span(ElementType (&arr)[N])
+span<ElementType, N> make_span(ElementType (&arr)[N]) noexcept
 {
     return span<ElementType, N>(arr);
 }
