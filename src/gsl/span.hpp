@@ -314,18 +314,14 @@ constexpr bool operator>=(const span<ElementType, Extent>& l, const span<Element
 }
 
 // [span.objectrep], views of object representation
-// template <class ElementType, std::ptrdiff_t Extentt>
-// span<const std::byte, ((Extent == dynamic_extent) ? dynamic_extent : (Extent * sizeof(ElementType)))> as_bytes(span<const ElementType, Extent> s) noexcept
-template <class ElementType>
-span<const std::byte> as_bytes(span<const ElementType> s) noexcept
+template <class ElementType, std::ptrdiff_t Extent>
+span<const std::byte, ((Extent == dynamic_extent) ? dynamic_extent : (Extent * sizeof(ElementType)))> as_bytes(span<const ElementType, Extent> s) noexcept
 {
     return {reinterpret_cast<const std::byte*>(s.data()), s.length_bytes()};
 }
 
-// template <class ElementType, std::ptrdiff_t Extent = dynamic_extent>
-// span<std::byte, ((Extent == dynamic_extent) ? dynamic_extent : (Extent * sizeof(ElementType)))> as_writeable_bytes(span<ElementType, Extent> s) noexcept
-template <class ElementType>
-span<std::byte> as_writeable_bytes(span<ElementType> s) noexcept
+template <class ElementType, std::ptrdiff_t Extent = dynamic_extent>
+span<std::byte, ((Extent == dynamic_extent) ? dynamic_extent : (Extent * sizeof(ElementType)))> as_writeable_bytes(span<ElementType, Extent> s) noexcept
 {
     return {reinterpret_cast<std::byte*>(s.data()), s.length_bytes()};
 }

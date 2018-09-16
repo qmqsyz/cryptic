@@ -74,6 +74,7 @@ public:
 
     void hash(span<const std::byte> message) noexcept
     {
+        reset();
         while(message.size() > 64)
         {
             const auto chunk = message.first<64>();
@@ -83,15 +84,16 @@ public:
         finalize(message);
     }
 
-    void encode(span<std::byte, 4 * N> output) const noexcept
+    void encode(span<std::byte, 4 * N> other) const noexcept
     {
-    	for(auto i = 0u, j = 0u; j < output.size(); ++i, j += 4u)
+        auto bytes = as_bytes(make_span(m_message_digest));
+    	for(auto i = 0u; i < other.size(); i += 4u)
         {
-    		output[j+0] = narrow(m_message_digest[i] >> 24);
-    		output[j+1] = narrow(m_message_digest[i] >> 16);
-    		output[j+2] = narrow(m_message_digest[i] >>  8);
-    		output[j+3] = narrow(m_message_digest[i] >>  0 );
-    	}
+    		other[i+0] = bytes[i+3];
+    		other[i+1] = bytes[i+2];
+    		other[i+2] = bytes[i+1];
+    		other[i+3] = bytes[i+0];
+        }
     }
 
     std::string base64() const
@@ -128,18 +130,15 @@ public:
 
     bool operator < (span<const std::byte, 4 * N> other) const noexcept
     {
-    	for(auto i = 0u, j = 0u; j < other.size(); ++i, j += 4u)
+        auto bytes = as_bytes(make_span(m_message_digest));
+    	for(auto i = 0u; i < other.size(); i += 4u)
         {
-    		if(other[j+0] != narrow(m_message_digest[i] >> 24))
-                return other[j+0] > narrow(m_message_digest[i] >> 24);
-    		if(other[j+1] != narrow(m_message_digest[i] >> 16))
-                return other[j+1] > narrow(m_message_digest[i] >> 16);
-    		if(other[j+2] != narrow(m_message_digest[i] >>  8))
-                return other[j+2] > narrow(m_message_digest[i] >>  8);
-    		if(other[j+3] != narrow(m_message_digest[i] >>  0))
-                return other[j+3] > narrow(m_message_digest[i] >>  0);
-    	}
-        return true;
+    		if(bytes[i+3] != other[i+0]) return bytes[i+3] < other[i+0];
+    		if(bytes[i+2] != other[i+1]) return bytes[i+2] < other[i+1];
+    		if(bytes[i+1] != other[i+2]) return bytes[i+1] < other[i+2];
+    		if(bytes[i+0] != other[i+3]) return bytes[i+0] < other[i+3];
+        }
+        return false;
     }
 
 private:
@@ -154,7 +153,7 @@ private:
             words[i] = std::to_integer<std::uint32_t>(chunk[j+0]) << 24 xor
                        std::to_integer<std::uint32_t>(chunk[j+1]) << 16 xor
                        std::to_integer<std::uint32_t>(chunk[j+2]) <<  8 xor
-                       std::to_integer<std::uint32_t>(chunk[j+3]);
+                       std::to_integer<std::uint32_t>(chunk[j+3]) <<  0;
 
         for(auto i = 16u; i < 64u; ++i)
         {

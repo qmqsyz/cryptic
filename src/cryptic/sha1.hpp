@@ -74,6 +74,7 @@ public:
 
     void hash(span<const std::byte> message) noexcept
     {
+        reset();
         while(message.size() > 64)
         {
             const auto chunk = message.first<64>();
@@ -85,7 +86,7 @@ public:
 
     void encode(span<std::byte,20> output) const noexcept
     {
-    	for(auto i = 0, j = 0; j < output.size(); ++i, j += 4)
+    	for(auto i = 0u, j = 0u; j < output.size(); ++i, j += 4u)
         {
     		output[j+0] = narrow(m_message_digest[i] >> 24);
     		output[j+1] = narrow(m_message_digest[i] >> 16);
