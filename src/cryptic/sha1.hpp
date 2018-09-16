@@ -3,10 +3,11 @@
 // See LICENCE file or https://opensource.org/licenses/MIT
 
 #pragma once
+#include <cstdint>
+#include <algorithm>
 #include <array>
 #include <sstream>
 #include <iomanip>
-#include <algorithm>
 #include "gsl/span.hpp"
 #include "cryptic/base64.hpp"
 #include "cryptic/helpers.hpp"
@@ -84,15 +85,16 @@ public:
         finalize(message);
     }
 
-    void encode(span<std::byte,20> output) const noexcept
+    void encode(span<std::byte,20> other) const noexcept
     {
-    	for(auto i = 0u, j = 0u; j < output.size(); ++i, j += 4u)
+        auto bytes = as_bytes(make_span(m_message_digest));
+    	for(auto i = std::uint_fast8_t{0u}; i < other.size(); i += 4u)
         {
-    		output[j+0] = narrow(m_message_digest[i] >> 24);
-    		output[j+1] = narrow(m_message_digest[i] >> 16);
-    		output[j+2] = narrow(m_message_digest[i] >>  8);
-    		output[j+3] = narrow(m_message_digest[i] >>  0);
-    	}
+    		other[i+0] = bytes[i+3];
+    		other[i+1] = bytes[i+2];
+    		other[i+2] = bytes[i+1];
+    		other[i+3] = bytes[i+0];
+        }
     }
 
     std::string base64() const
@@ -132,17 +134,15 @@ public:
 
     bool operator < (span<const std::byte, 20> other) const noexcept
     {
-    	for(auto i = 0u, j = 0u; j < other.size(); ++i, j += 4u)
+        auto bytes = as_bytes(make_span(m_message_digest));
+    	for(auto i = std::uint_fast8_t{0u}; i < other.size(); i += 4u)
         {
-    		if(other[j+0] != narrow(m_message_digest[i] >> 24))
-                return other[j+0] > narrow(m_message_digest[i] >> 24);
-    		if(other[j+1] != narrow(m_message_digest[i] >> 16))
-                return other[j+1] > narrow(m_message_digest[i] >> 16);
-    		if(other[j+2] != narrow(m_message_digest[i] >>  8))
-                return other[j+2] > narrow(m_message_digest[i] >>  8);
-    		if(other[j+3] != narrow(m_message_digest[i] >>  0))
-                return other[j+3] > narrow(m_message_digest[i] >>  0);
-    	}
+    		if(bytes[i+3] != other[i+0]) return bytes[i+3] < other[i+0];
+    		if(bytes[i+2] != other[i+1]) return bytes[i+2] < other[i+1];
+    		if(bytes[i+1] != other[i+2]) return bytes[i+1] < other[i+2];
+    		if(bytes[i+0] != other[i+3]) return bytes[i+0] < other[i+3];
+        }
+        return false;
         return true;
     }
 
@@ -154,16 +154,16 @@ private:
 
         auto words = std::array<std::uint32_t,80>{};
 
-        for(auto i = 0u, j = 0u; i < 16u; ++i, j += 4u)
+        for(auto i = std::uint_fast8_t{0u}, j = std::uint_fast8_t{0u}; i < 16u; ++i, j += 4u)
             words[i] = std::to_integer<uint32_t>(chunk[j+0]) << 24 xor
                        std::to_integer<uint32_t>(chunk[j+1]) << 16 xor
                        std::to_integer<uint32_t>(chunk[j+2]) <<  8 xor
                        std::to_integer<uint32_t>(chunk[j+3]);
 
-        for(auto i = 16u; i < 32u; ++i)
+        for(auto i = std::uint_fast8_t{16u}; i < 32u; ++i)
             words[i] = leftrotate<1>(words[i-3] xor words[i-8] xor words[i-14] xor words[i-16]);
 
-        for(auto i = 32u; i < 80u; ++i)
+        for(auto i = std::uint_fast8_t{32u}; i < 80u; ++i)
             words[i] = leftrotate<2>(words[i-6] xor words[i-16] xor words[i-28] xor words[i-32]);
 
         auto a = m_message_digest[0],
@@ -174,7 +174,7 @@ private:
              f = 0u,
              k = 0u;
 
-        for(auto i = 0u; i < 20u; ++i)
+        for(auto i = std::uint_fast8_t{0u}; i < 20u; ++i)
         {
             f = (b bitand c) bitor ((compl b) bitand d);
             k = 0x5A827999u;
@@ -186,7 +186,7 @@ private:
             a = temp;
         }
 
-        for(auto i = 20u; i < 40u; ++i)
+        for(auto i = std::uint_fast8_t{20u}; i < 40u; ++i)
         {
             f = b xor c xor d;
             k = 0x6ED9EBA1u;
@@ -198,7 +198,7 @@ private:
             a = temp;
         }
 
-        for(auto i = 40u; i < 60u; ++i)
+        for(auto i = std::uint_fast8_t{40u}; i < 60u; ++i)
         {
             f = (b bitand c) bitor (b bitand d) bitor (c bitand d);
             k = 0x8F1BBCDCu;
@@ -210,7 +210,7 @@ private:
             a = temp;
         }
 
-        for(auto i = 60u; i < 80u; ++i)
+        for(auto i = std::uint_fast8_t{60u}; i < 80u; ++i)
         {
             f = b xor c xor d;
             k = 0xCA62C1D6u;

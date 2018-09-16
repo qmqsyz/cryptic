@@ -3,10 +3,11 @@
 // See LICENCE file or https://opensource.org/licenses/MIT
 
 #pragma once
+#include <cstdint>
+#include <algorithm>
 #include <array>
 #include <sstream>
 #include <iomanip>
-#include <algorithm>
 #include "gsl/span.hpp"
 #include "cryptic/base64.hpp"
 #include "cryptic/helpers.hpp"
@@ -87,7 +88,7 @@ public:
     void encode(span<std::byte, 4 * N> other) const noexcept
     {
         auto bytes = as_bytes(make_span(m_message_digest));
-    	for(auto i = 0u; i < other.size(); i += 4u)
+    	for(auto i = std::uint_fast8_t{0u}; i < other.size(); i += 4u)
         {
     		other[i+0] = bytes[i+3];
     		other[i+1] = bytes[i+2];
@@ -112,7 +113,7 @@ public:
     std::string hexadecimal() const
     {
         auto ss = std::stringstream{};
-        for(auto i = 0u; i < N; ++i)
+        for(auto i = std::uint_fast8_t{0u}; i < N; ++i)
             ss << std::setw(8) << std::setfill('0') << std::hex << m_message_digest[i];
         return ss.str();
     }
@@ -131,7 +132,7 @@ public:
     bool operator < (span<const std::byte, 4 * N> other) const noexcept
     {
         auto bytes = as_bytes(make_span(m_message_digest));
-    	for(auto i = 0u; i < other.size(); i += 4u)
+    	for(auto i = std::uint_fast8_t{0u}; i < other.size(); i += 4u)
         {
     		if(bytes[i+3] != other[i+0]) return bytes[i+3] < other[i+0];
     		if(bytes[i+2] != other[i+1]) return bytes[i+2] < other[i+1];
@@ -149,13 +150,13 @@ private:
 
         auto words = std::array<std::uint32_t,64>{};
 
-        for(auto i = 0u, j = 0u; i < 16u; ++i, j += 4u)
+        for(auto i = std::uint_fast8_t{0u}, j = std::uint_fast8_t{0u}; i < 16u; ++i, j += 4u)
             words[i] = std::to_integer<std::uint32_t>(chunk[j+0]) << 24 xor
                        std::to_integer<std::uint32_t>(chunk[j+1]) << 16 xor
                        std::to_integer<std::uint32_t>(chunk[j+2]) <<  8 xor
                        std::to_integer<std::uint32_t>(chunk[j+3]) <<  0;
 
-        for(auto i = 16u; i < 64u; ++i)
+        for(auto i = std::uint_fast8_t{16u}; i < 64u; ++i)
         {
             const auto s0 = rightrotate<7>(words[i-15]) xor rightrotate<18>(words[i-15]) xor (words[i-15] >> 3);
             const auto s1 = rightrotate<17>(words[i-2]) xor rightrotate<19>(words[i-2]) xor (words[i-2] >> 10);
@@ -171,7 +172,7 @@ private:
              g = m_message_digest[6],
              h = m_message_digest[7];
 
-        for(auto i = 0u; i < 64u; ++i)
+        for(auto i = std::uint_fast8_t{0u}; i < 64u; ++i)
         {
             const auto S1 = rightrotate<6>(e) xor rightrotate<11>(e) xor rightrotate<25>(e);
             const auto ch = (e bitand f) xor ((compl e) bitand g);
