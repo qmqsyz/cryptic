@@ -35,16 +35,21 @@ public:
         hash(message);
     }
 
-    void hash(span<const byte> message) noexcept
+    void reset()
     {
+        m_message_length = 0ull;
         m_message_digest[0] = 0x67452301u;
         m_message_digest[1] = 0xEFCDAB89u;
         m_message_digest[2] = 0x98BADCFEu;
         m_message_digest[3] = 0x10325476u;
         m_message_digest[4] = 0xC3D2E1F0u;
+    }
+
+    void hash(span<const byte> message) noexcept
+    {
         m_message_length += 8ull * static_cast<size_type>(message.size());
 
-        while(message.size() >= 64)
+        while(message.size() > 64)
         {
             const auto chunk = message.first<64>();
             transform(chunk);

@@ -33,8 +33,9 @@ public:
         hash(message);
     }
 
-    void hash(span<const byte> message) noexcept
+    void reset()
     {
+        m_message_length = 0ull;
         m_message_digest[0] = H0;
         m_message_digest[1] = H1;
         m_message_digest[2] = H2;
@@ -43,9 +44,19 @@ public:
         m_message_digest[5] = H5;
         m_message_digest[6] = H6;
         m_message_digest[7] = H7;
+    }
+
+    void update(span<const byte,64> chunk) noexcept
+    {
+        m_message_length += 8ull * static_cast<size_type>(chunk.size());
+        transform(chunk);
+    }
+
+    void hash(span<const byte> message) noexcept
+    {
         m_message_length += 8ull * static_cast<size_type>(message.size());
 
-        while(message.size() >= 64)
+        while(message.size() > 64)
         {
             const auto chunk = message.first<64>();
             transform(chunk);

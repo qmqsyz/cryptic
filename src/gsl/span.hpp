@@ -98,16 +98,20 @@ public:
     {}
 
     template <class Container>
-    constexpr span(Container& cont) :
-        m_data{reinterpret_cast<pointer>(cont.data())},
-        m_size{cont.size()}
-    {}
+    constexpr span(Container& container) :
+        m_data{reinterpret_cast<pointer>(container.data())},
+        m_size{container.size()}
+    {
+        Expects(Extent == dynamic_extent || container.size() >= Extent);
+    }
 
     template <class Container>
-    constexpr span(const Container& cont) :
-        m_data{reinterpret_cast<pointer>(cont.data())},
-        m_size{cont.size()}
-    {}
+    constexpr span(const Container& container) :
+        m_data{reinterpret_cast<pointer>(container.data())},
+        m_size{container.size()}
+    {
+        Expects(Extent == dynamic_extent || container.size() >= Extent);
+    }
 
     // template <class Container> span(const Container&&) = delete;
 
@@ -121,6 +125,7 @@ public:
     {
         static_assert(std::is_convertible_v<OtherElementType,ElementType>, "Not convertible");
         static_assert(OtherExtent <= Extent, "Size mismatch");
+        Expects(Extent == dynamic_extent || other.size() >= Extent);
     }
 
     template <class OtherElementType, std::ptrdiff_t OtherExtent>
@@ -129,6 +134,7 @@ public:
     {
         static_assert(std::is_convertible_v<OtherElementType,ElementType>, "Not convertible");
         static_assert(OtherExtent <= Extent, "Size mismatch");
+        Expects(Extent == dynamic_extent || other.size() >= Extent);
     }
 
     ~span() noexcept = default;

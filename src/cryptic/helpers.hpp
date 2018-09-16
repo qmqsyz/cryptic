@@ -10,7 +10,7 @@ constexpr byte narrow(Integer number)
 {
     static_assert(is_integral_v<Integer>);
     static_assert(numeric_limits<byte>::digits < numeric_limits<Integer>::digits);
-    return static_cast<byte>(number bitand 0b11111111);
+    return static_cast<byte>(number);
 }
 
 template<size_t Rotation, typename Unsigned>
