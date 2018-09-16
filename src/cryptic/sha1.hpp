@@ -87,10 +87,10 @@ public:
     {
     	for(auto i = 0, j = 0; j < output.size(); ++i, j += 4)
         {
-    		output[j+3] = narrow(m_message_digest[i]      );
-    		output[j+2] = narrow(m_message_digest[i] >>  8);
-    		output[j+1] = narrow(m_message_digest[i] >> 16);
     		output[j+0] = narrow(m_message_digest[i] >> 24);
+    		output[j+1] = narrow(m_message_digest[i] >> 16);
+    		output[j+2] = narrow(m_message_digest[i] >>  8);
+    		output[j+3] = narrow(m_message_digest[i] >>  0);
     	}
     }
 
@@ -127,6 +127,22 @@ public:
     constexpr std::size_t size() const noexcept
     {
         return 20ul;
+    }
+
+    bool operator < (span<const std::byte, 20> other) const noexcept
+    {
+    	for(auto i = 0u, j = 0u; j < other.size(); ++i, j += 4u)
+        {
+    		if(other[j+0] != narrow(m_message_digest[i] >> 24))
+                return other[j+0] > narrow(m_message_digest[i] >> 24);
+    		if(other[j+1] != narrow(m_message_digest[i] >> 16))
+                return other[j+1] > narrow(m_message_digest[i] >> 16);
+    		if(other[j+2] != narrow(m_message_digest[i] >>  8))
+                return other[j+2] > narrow(m_message_digest[i] >>  8);
+    		if(other[j+3] != narrow(m_message_digest[i] >>  0))
+                return other[j+3] > narrow(m_message_digest[i] >>  0);
+    	}
+        return true;
     }
 
 private:
