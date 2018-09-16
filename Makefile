@@ -6,7 +6,7 @@ CXXFLAGS += -std=c++1z
 CXXFLAGS +=  -Wextra
 CXXFLAGS +=  -Wno-c++98-compat -Wno-c++98-compat-pedantic -Wno-c++98-c++11-compat-binary-literal -Wno-padded -Wno-reserved-id-macro
 CXXFLAGS += -nostdinc++ -I/usr/local/include/c++/v1
-CXXFLAGS += -DNDEBUG=1 # -O3
+CXXFLAGS += -DNDEBUG=1 -O3
 
 LDFLAGS = -nostdlib
 LDFLAGS += -L/usr/lib

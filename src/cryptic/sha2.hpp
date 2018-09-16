@@ -13,22 +13,23 @@
 
 namespace cryptic {
 
-using namespace std;
 using namespace gsl;
 
-template<uint32_t H0, uint32_t H1, uint32_t H2, uint32_t H3, uint32_t H4, uint32_t H5, uint32_t H6, uint32_t H7, size_t N>
+template<std::uint32_t H0, std::uint32_t H1, std::uint32_t H2, std::uint32_t H3, std::uint32_t H4, std::uint32_t H5, std::uint32_t H6, std::uint32_t H7, std::size_t N>
 class sha2
 {
 public:
 
-    using size_type = std::uint64_t;
+    using message_length_type = std::uint64_t;
+
+    using buffer_type = std::array<std::byte,4*N>;
 
     sha2() noexcept :
         m_message_length{0ull},
         m_message_digest{H0,H1,H2,H3,H4,H5,H6,H7}
     {}
 
-    sha2(span<const byte> message) noexcept : sha2()
+    sha2(span<const std::byte> message) noexcept : sha2()
     {
         hash(message);
     }
@@ -46,40 +47,43 @@ public:
         m_message_digest[7] = H7;
     }
 
-    void update(span<const byte,64> chunk) noexcept
+    void update(span<const std::byte,64> chunk) noexcept
     {
-        m_message_length += 8ull * static_cast<size_type>(chunk.size());
+        Expects(chunk.size() == 64);
+        m_message_length += 8ull * static_cast<message_length_type>(chunk.size()); // NOTE, bits
         transform(chunk);
     }
 
-    void hash(span<const byte> message) noexcept
+    void finalize(span<const std::byte> chunk)
     {
-        m_message_length += 8ull * static_cast<size_type>(message.size());
+        Expects(chunk.size() < 64);
+        m_message_length += 8ull * static_cast<message_length_type>(chunk.size()); // NOTE, bits
+        auto temp = std::array<std::byte,64>{};
+        auto itr = std::copy(chunk.cbegin(), chunk.cend(), temp.begin());
+        *itr++ =  std::byte{0b10000000};
+        std::fill(itr, temp.end(), std::byte{0b00000000});
+        if(std::distance(itr, temp.end()) < 8)
+        {
+            transform(temp);
+            std::fill_n(temp.begin(), 56, std::byte{0b00000000});
+        }
+        const auto length = make_span(temp).last<8>();
+        encode(length, m_message_length);
+        transform(temp);
+    }
 
+    void hash(span<const std::byte> message) noexcept
+    {
         while(message.size() > 64)
         {
             const auto chunk = message.first<64>();
-            transform(chunk);
+            update(chunk);
             message = message.subspan<64>();
         }
-
-        auto chunk = array<byte,64>{};
-        auto itr = copy(message.cbegin(), message.cend(), chunk.begin());
-        *itr++ = byte{0b10000000};
-        fill(itr, chunk.end(), byte{0b00000000});
-
-        if(distance(itr, chunk.end()) < 8)
-        {
-            transform(chunk);
-            fill_n(chunk.begin(), 56, byte{0b00000000});
-        }
-
-        const auto length = make_span(chunk).last<8>();
-        encode(length, m_message_length);
-        transform(chunk);
+        finalize(message);
     }
 
-    void encode(span<byte,4*N> output) const noexcept
+    void encode(span<std::byte,4*N> output) const noexcept
     {
     	for(auto i = 0, j = 0; j < output.size(); ++i, j += 4)
         {
@@ -90,49 +94,51 @@ public:
     	}
     }
 
-    constexpr size_type size() const
+    std::string base64() const
     {
-        return 4*N;
-    }
-
-    string base64() const
-    {
-        auto buffer = array<byte,4*N>{};
+        auto buffer = buffer_type{};
         encode(buffer);
         return base64::encode(buffer);
     }
 
-    static string base64(span<const byte> message)
+    static std::string base64(span<const std::byte> message)
     {
         auto hash = sha2{message};
         return hash.base64();
     }
 
-    string hexadecimal() const
+    std::string hexadecimal() const
     {
-        auto ss = stringstream{};
+        auto ss = std::stringstream{};
         for(auto i = 0u; i < N; ++i)
-            ss << setw(8) << setfill('0') << hex << m_message_digest[i];
+            ss << std::setw(8) << std::setfill('0') << std::hex << m_message_digest[i];
         return ss.str();
     }
 
-    static string hexadecimal(span<const byte> message)
+    static std::string hexadecimal(span<const std::byte> message)
     {
         const auto hash = sha2{message};
         return hash.hexadecimal();
     }
 
+    constexpr std::size_t size() const noexcept
+    {
+        return 4*N;
+    }
+
 private:
 
-    void transform(span<const byte, 64> chunk) noexcept
+    void transform(span<const std::byte, 64> chunk) noexcept
     {
-        auto words = array<uint32_t,64>{};
+        Expects(chunk.size() == 64);
+
+        auto words = std::array<std::uint32_t,64>{};
 
         for(auto i = 0u, j = 0u; i < 16u; ++i, j += 4u)
-            words[i] = to_integer<uint32_t>(chunk[j+0]) << 24 xor
-                       to_integer<uint32_t>(chunk[j+1]) << 16 xor
-                       to_integer<uint32_t>(chunk[j+2]) <<  8 xor
-                       to_integer<uint32_t>(chunk[j+3]);
+            words[i] = std::to_integer<std::uint32_t>(chunk[j+0]) << 24 xor
+                       std::to_integer<std::uint32_t>(chunk[j+1]) << 16 xor
+                       std::to_integer<std::uint32_t>(chunk[j+2]) <<  8 xor
+                       std::to_integer<std::uint32_t>(chunk[j+3]);
 
         for(auto i = 16u; i < 64u; ++i)
         {
@@ -179,7 +185,7 @@ private:
         m_message_digest[7] += h;
     }
 
-    static void encode(span<byte,8> output, const size_type length) noexcept
+    static void encode(span<std::byte,8> output, const message_length_type length) noexcept
     {
     	output[7] = narrow(length >>  0);
     	output[6] = narrow(length >>  8);
@@ -191,7 +197,7 @@ private:
     	output[0] = narrow(length >> 56);
     }
 
-    static constexpr array<uint32_t,64> k =
+    static constexpr std::array<std::uint32_t,64> k =
     {
         0x428a2f98u, 0x71374491u, 0xb5c0fbcfu, 0xe9b5dba5u, 0x3956c25bu, 0x59f111f1u, 0x923f82a4u, 0xab1c5ed5u,
         0xd807aa98u, 0x12835b01u, 0x243185beu, 0x550c7dc3u, 0x72be5d74u, 0x80deb1feu, 0x9bdc06a7u, 0xc19bf174u,
@@ -203,9 +209,9 @@ private:
         0x748f82eeu, 0x78a5636fu, 0x84c87814u, 0x8cc70208u, 0x90befffau, 0xa4506cebu, 0xbef9a3f7u, 0xc67178f2u
     };
 
-    size_type m_message_length;
+    message_length_type m_message_length;
 
-    array<uint32_t,8> m_message_digest;
+    std::array<std::uint32_t,8> m_message_digest;
 };
 
 using sha224 = sha2<0xc1059ed8u,0x367cd507u,0x3070dd17u,0xf70e5939u,0xffc00b31u,0x68581511u,0x64f98fa7u,0xbefa4fa4u,7>;

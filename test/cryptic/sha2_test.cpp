@@ -93,7 +93,6 @@ TEST(CrypticSHA256,Hash)
     auto test1 = cryptic::sha256{}, test2 = cryptic::sha256{};
     test1.hash("The quick brown fox jumps over the lazy dog. The quick brown fox jumps over the lazy dog."s);
     test2.update("The quick brown fox jumps over the lazy dog. The quick brown fox jumps over the lazy dog."s);
-//    test2.update("The quick brown fox jumps over the lazy dog. The quick brown fox"s);
-    test2.hash(" jumps over the lazy dog."s);
+    test2.finalize(" jumps over the lazy dog."s);
     EXPECT_EQ(test1.base64(), test2.base64());
 }
