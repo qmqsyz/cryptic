@@ -87,7 +87,7 @@ public:
 
     void encode(span<std::byte, 4 * N> other) const noexcept
     {
-        auto bytes = as_bytes(make_span(m_message_digest));
+        const auto bytes = as_bytes(make_span(m_message_digest));
     	for(auto i = std::uint_fast8_t{0u}; i < other.size(); i += 4u)
         {
     		other[i+0] = bytes[i+3];
@@ -131,7 +131,7 @@ public:
 
     bool operator < (span<const std::byte, 4 * N> other) const noexcept
     {
-        auto bytes = as_bytes(make_span(m_message_digest));
+        const auto bytes = as_bytes(make_span(m_message_digest));
     	for(auto i = std::uint_fast8_t{0u}; i < other.size(); i += 4u)
         {
     		if(bytes[i+3] != other[i+0]) return bytes[i+3] < other[i+0];
