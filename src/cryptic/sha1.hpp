@@ -132,6 +132,14 @@ public:
         return 20ul;
     }
 
+    bool operator < (const sha1& other) const noexcept
+    {
+    	for(auto i = std::uint_fast8_t{0u}; i < sizeof m_message_digest; ++i)
+            if(m_message_digest[i] != other.m_message_digest[i])
+                return m_message_digest[i] < other.m_message_digest[i];
+        return false;
+    }
+
     bool operator < (span<const std::byte, 20> other) const noexcept
     {
         const auto bytes = as_bytes(make_span(m_message_digest));

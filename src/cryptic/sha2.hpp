@@ -35,6 +35,10 @@ public:
         hash(message);
     }
 
+    sha2(const sha2&) = default;
+
+    sha2(sha2&&) = default;
+
     void reset()
     {
         m_message_length = 0ull;
@@ -127,6 +131,14 @@ public:
     constexpr std::size_t size() const noexcept
     {
         return 4 * N;
+    }
+
+    bool operator < (const sha2& other) const noexcept
+    {
+    	for(auto i = std::uint_fast8_t{0u}; i < N; ++i)
+            if(m_message_digest[i] != other.m_message_digest[i])
+                return m_message_digest[i] < other.m_message_digest[i];
+        return false;
     }
 
     bool operator < (span<const std::byte, 4 * N> other) const noexcept
