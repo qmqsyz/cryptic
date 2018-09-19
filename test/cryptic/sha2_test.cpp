@@ -76,7 +76,7 @@ TEST(CrypticSHA256,Reset)
     EXPECT_EQ("47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU="s, sha256.base64());
     EXPECT_EQ("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"s, sha256.hexadecimal());
 
-    sha256.update("The quick brown fox jumps over the lazy dog"s);
+    sha256.finalize("The quick brown fox jumps over the lazy dog"s);
 
     EXPECT_NE("16j7swfXgJRpypq8sAguT41WUeRtPNt2LQLQvzfJ5ZI="s, sha256.base64());
     EXPECT_NE("d7a8fbb307d7809469ca9abcb0082e4f8d5651e46d3cdb762d02d0bf37c9e592"s, sha256.hexadecimal());

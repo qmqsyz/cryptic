@@ -125,7 +125,7 @@ public:
     {
         static_assert(std::is_convertible_v<OtherElementType,ElementType>, "Not convertible");
         static_assert(OtherExtent <= Extent, "Size mismatch");
-        Expects(Extent == dynamic_extent || other.size() >= Extent);
+        Expects(other.size() <= Extent);
     }
 
     template <class OtherElementType, std::ptrdiff_t OtherExtent>
@@ -134,7 +134,7 @@ public:
     {
         static_assert(std::is_convertible_v<OtherElementType,ElementType>, "Not convertible");
         static_assert(OtherExtent <= Extent, "Size mismatch");
-        Expects(Extent == dynamic_extent || other.size() >= Extent);
+        Expects(other.size() <= Extent);
     }
 
     ~span() noexcept = default;

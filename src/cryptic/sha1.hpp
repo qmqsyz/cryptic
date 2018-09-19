@@ -76,7 +76,7 @@ public:
     void hash(span<const std::byte> message) noexcept
     {
         reset();
-        while(message.size() > 64)
+        while(message.size() >= 64)
         {
             const auto chunk = message.first<64>();
             update(chunk);
