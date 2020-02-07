@@ -1,16 +1,11 @@
-#CXX = /Library/Developer/CommandLineTools/usr/bin/clang
-CXX = /usr/local/bin/clang
+CXX = clang
 
 CXXFLAGS = -I$(SRCDIR) -MMD
-CXXFLAGS += -std=c++1z
+CXXFLAGS += -std=c++17
 CXXFLAGS +=  -Wextra
 CXXFLAGS +=  -Wno-c++98-compat -Wno-c++98-compat-pedantic -Wno-c++98-c++11-compat-binary-literal -Wno-padded -Wno-reserved-id-macro
-CXXFLAGS += -nostdinc++ -I/usr/local/include/c++/v1
 CXXFLAGS += -DNDEBUG=1 -O3
 
-LDFLAGS = -nostdlib
-LDFLAGS += -L/usr/lib
-LDFLAGS += -L/usr/local/lib
 LDFLAGS += -lc++ -lSystem -lcrypto
 
 SRCDIR = src
