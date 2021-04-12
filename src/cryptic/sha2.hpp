@@ -5,17 +5,12 @@
 #pragma once
 #include <bit>
 #include <cstdint>
-#include <algorithm>
-#include <array>
 #include <sstream>
 #include <iomanip>
-#include "gsl/span.hpp"
 #include "gsl/narrow_cast.hpp"
 #include "cryptic/base64.hpp"
 
 namespace cryptic {
-
-using namespace gsl;
 
 template<std::uint32_t H0, std::uint32_t H1, std::uint32_t H2, std::uint32_t H3, std::uint32_t H4, std::uint32_t H5, std::uint32_t H6, std::uint32_t H7, std::size_t N>
 class sha2
@@ -31,7 +26,8 @@ public:
         m_message_digest{H0,H1,H2,H3,H4,H5,H6,H7}
     {}
 
-    sha2(span<const std::byte> message) noexcept : sha2()
+    template<typename T>
+    sha2(T message) noexcept : sha2()
     {
         hash(message);
     }
@@ -40,57 +36,26 @@ public:
 
     sha2(sha2&&) = default;
 
-    constexpr void reset()
-    {
-        m_message_length = 0ull;
-        m_message_digest[0] = H0;
-        m_message_digest[1] = H1;
-        m_message_digest[2] = H2;
-        m_message_digest[3] = H3;
-        m_message_digest[4] = H4;
-        m_message_digest[5] = H5;
-        m_message_digest[6] = H6;
-        m_message_digest[7] = H7;
-    }
-
-    void update(span<const std::byte,64> chunk) noexcept
-    {
-        m_message_length += 8ull * 64ull; // NOTE, bits
-        transform(chunk.data());
-    }
-
-    void finalize(span<const std::byte> chunk)
-    {
-        Expects(chunk.size() < 64);
-        m_message_length += 8ull * chunk.size(); // NOTE, bits
-        auto temp = std::array<std::byte,64>{};
-        temp.fill(std::byte{0b00000000});
-        auto itr = std::copy(chunk.cbegin(), chunk.cend(), temp.begin());
-        *itr++ = std::byte{0b10000000};
-        if(std::distance(itr, temp.end()) < 8)
-        {
-            transform(temp.data());
-            temp.fill(std::byte{0b00000000});
-        }
-        auto length = make_span(temp).last<8>();
-        encode(length.data(), m_message_length);
-        transform(temp.data());
-    }
-
-    void hash(span<const std::byte> message) noexcept
+    void hash(std::span<const std::byte> message) noexcept
     {
         reset();
         while(message.size() >= 64)
         {
-            update(message);
+            update(message.first<64>());
             message = message.subspan<64>();
         }
         finalize(message);
     }
 
-    void encode(span<std::byte, 4 * N> other) const noexcept
+    template<typename T>
+    void hash(T message) noexcept
     {
-        const auto bytes = as_bytes(make_span(m_message_digest));
+        hash(std::as_bytes(std::span{message}));
+    }
+
+    void encode(std::span<std::byte, 4 * N> other) const noexcept
+    {
+        const auto bytes = std::as_bytes(std::span{m_message_digest});
     	for(auto i = std::uint_fast8_t{0u}; i < other.size(); i += 4u)
         {
     		other[i+0] = bytes[i+3];
@@ -107,7 +72,8 @@ public:
         return base64::encode(buffer);
     }
 
-    static std::string base64(span<const std::byte> message)
+    template<typename T>
+    static std::string base64(T message)
     {
         auto hash = sha2{message};
         return hash.base64();
@@ -121,7 +87,8 @@ public:
         return ss.str();
     }
 
-    static std::string hexadecimal(span<const std::byte> message)
+    template<typename T>
+    static std::string hexadecimal(T message)
     {
         const auto hash = sha2{message};
         return hash.hexadecimal();
@@ -140,9 +107,9 @@ public:
         return false;
     }
 
-    bool operator < (span<const std::byte, 4 * N> other) const noexcept
+    bool operator < (std::span<const std::byte, 4 * N> other) const noexcept
     {
-        const auto bytes = as_bytes(make_span(m_message_digest));
+        const auto bytes = std::as_bytes(std::span{m_message_digest});
     	for(auto i = std::uint_fast8_t{0u}; i < other.size(); i += 4u)
         {
     		if(bytes[i+3] != other[i+0]) return bytes[i+3] < other[i+0];
@@ -154,6 +121,43 @@ public:
     }
 
 private:
+
+    constexpr void reset()
+    {
+        m_message_length = 0ull;
+        m_message_digest[0] = H0;
+        m_message_digest[1] = H1;
+        m_message_digest[2] = H2;
+        m_message_digest[3] = H3;
+        m_message_digest[4] = H4;
+        m_message_digest[5] = H5;
+        m_message_digest[6] = H6;
+        m_message_digest[7] = H7;
+    }
+
+    void update(std::span<const std::byte,64> chunk) noexcept
+    {
+        m_message_length += 8ull * 64ull; // NOTE, bits
+        transform(chunk.data());
+    }
+
+    void finalize(std::span<const std::byte> chunk)
+    {
+        Expects(chunk.size() < 64);
+        m_message_length += 8ull * chunk.size(); // NOTE, bits
+        auto temp = std::array<std::byte,64>{};
+        temp.fill(std::byte{0b00000000});
+        auto itr = std::copy(chunk.begin(), chunk.end(), temp.begin());
+        *itr++ = std::byte{0b10000000};
+        if(std::distance(itr, temp.end()) < 8)
+        {
+            transform(temp.data());
+            temp.fill(std::byte{0b00000000});
+        }
+        auto length = std::span{temp}.last<8>();
+        encode(length.data(), m_message_length);
+        transform(temp.data());
+    }
 
     constexpr void transform(const std::byte* chunk) noexcept
     {

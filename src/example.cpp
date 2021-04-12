@@ -17,7 +17,7 @@ int main()
     std::cout << hash.hexadecimal() << std::endl;
     std::cout << hash.base64() << std::endl;
 
-    auto file = std::ifstream{"./src/example.cpp"};
+    auto file = std::ifstream{"./src/example.cpp"s};
     auto test2 = ""s;
     std::getline(file,test2,static_cast<char>(std::char_traits<char>::eof()));
     std::cout << cryptic::sha1::base64(test2) << std::endl;

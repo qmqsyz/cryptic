@@ -5,8 +5,9 @@
 #pragma once
 #include <string>
 #include <array>
+#include <span>
 #include <algorithm>
-#include "gsl/span.hpp"
+#include "gsl/assert.hpp"
 
 namespace cryptic::base64 {
 
@@ -33,7 +34,7 @@ namespace cryptic::base64 {
         return 64;
     }
 
-    inline std::string encode(gsl::span<const std::byte> source)
+    inline std::string encode(std::span<const std::byte> source)
     {
         auto encoded = std::string{};
 
@@ -61,10 +62,15 @@ namespace cryptic::base64 {
             encoded.push_back(to_character_set(index3));
             encoded.push_back(to_character_set(index4));
 
-            source = source.subspan(std::min(3l,source.size()));
+            source = source.subspan(std::min(3ul,source.size()));
         }
 
         return encoded;
+    }
+
+    inline std::string encode(const std::string& source)
+    {
+        return encode(std::as_bytes(std::span{source}));
     }
 
     inline std::string decode(std::string_view source)
