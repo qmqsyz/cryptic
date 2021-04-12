@@ -11,7 +11,7 @@ using namespace std::string_literals;
 TEST(CrypticSHA224,Base64)
 {
     auto hash = cryptic::sha224{};
-    EXPECT_EQ(28, hash.size());
+    EXPECT_EQ(28ul, hash.size());
 
     auto test1 = ""s;
     EXPECT_EQ("0UoCjCo6K8lHYQK7KII0xBWisB+CjqYqxbPkLw=="s, cryptic::sha224::base64(test1));
@@ -26,7 +26,7 @@ TEST(CrypticSHA224,Base64)
 TEST(CrypticSHA224,Hexadecimal)
 {
     auto hash = cryptic::sha224{};
-    EXPECT_EQ(28, hash.size());
+    EXPECT_EQ(28ul, hash.size());
 
     auto test1 = ""s;
     EXPECT_EQ("d14a028c2a3a2bc9476102bb288234c415a2b01f828ea62ac5b3e42f"s, cryptic::sha224::hexadecimal(test1));
@@ -41,7 +41,7 @@ TEST(CrypticSHA224,Hexadecimal)
 TEST(CrypticSHA256,Base64)
 {
     auto hash = cryptic::sha256{};
-    EXPECT_EQ(32, hash.size());
+    EXPECT_EQ(32ul, hash.size());
 
     auto test1 = ""s;
     EXPECT_EQ("47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU="s, cryptic::sha256::base64(test1));
@@ -56,7 +56,7 @@ TEST(CrypticSHA256,Base64)
 TEST(CrypticSHA256,Hexadecimal)
 {
     auto hash = cryptic::sha256{};
-    EXPECT_EQ(32, hash.size());
+    EXPECT_EQ(32ul, hash.size());
 
     auto test1 = ""s;
     EXPECT_EQ("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"s, cryptic::sha256::hexadecimal(test1));

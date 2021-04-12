@@ -3,14 +3,15 @@
 // See LICENCE file or https://opensource.org/licenses/MIT
 
 #pragma once
+#include <bit>
 #include <cstdint>
 #include <algorithm>
 #include <array>
 #include <sstream>
 #include <iomanip>
 #include "gsl/span.hpp"
+#include "gsl/narrow_cast.hpp"
 #include "cryptic/base64.hpp"
-#include "cryptic/helpers.hpp"
 
 namespace cryptic {
 
@@ -61,15 +62,15 @@ public:
     void finalize(span<const std::byte> chunk)
     {
         Expects(chunk.size() < 64);
-        m_message_length += 8ull * static_cast<message_length_type>(chunk.size()); // NOTE, bits
+        m_message_length += 8ull * chunk.size(); // NOTE, bits
         auto temp = std::array<std::byte,64>{};
+        temp.fill(std::byte{0b00000000});
         auto itr = std::copy(chunk.cbegin(), chunk.cend(), temp.begin());
-        *itr++ =  std::byte{0b10000000};
-        std::fill(itr, temp.end(), std::byte{0b00000000});
+        *itr++ = std::byte{0b10000000};
         if(std::distance(itr, temp.end()) < 8)
         {
             transform(temp.data());
-            std::fill_n(temp.begin(), 56, std::byte{0b00000000});
+            temp.fill(std::byte{0b00000000});
         }
         auto length = make_span(temp).last<8>();
         encode(length.data(), m_message_length);
@@ -156,8 +157,7 @@ private:
 
     constexpr void transform(const std::byte* chunk) noexcept
     {
-        Expects(chunk.size() == 64);
-
+        Expects(chunk);
         auto words = std::array<std::uint32_t,64>{};
 
         for(auto i = std::uint_fast8_t{0u}, j = std::uint_fast8_t{0u}; i < 16u; ++i, j += 4u)
@@ -168,8 +168,8 @@ private:
 
         for(auto i = std::uint_fast8_t{16u}; i < 64u; ++i)
         {
-            const auto s0 = rightrotate<7>(words[i-15]) xor rightrotate<18>(words[i-15]) xor (words[i-15] >> 3);
-            const auto s1 = rightrotate<17>(words[i-2]) xor rightrotate<19>(words[i-2]) xor (words[i-2] >> 10);
+            const auto s0 = std::rotr(words[i-15], 7) xor std::rotr(words[i-15], 18) xor (words[i-15] >> 3);
+            const auto s1 = std::rotr(words[i-2], 17) xor std::rotr(words[i-2], 19) xor (words[i-2] >> 10);
             words[i] = words[i-16] + s0 + words[i-7] + s1;
         }
 
@@ -184,10 +184,10 @@ private:
 
         for(auto i = std::uint_fast8_t{0u}; i < 64u; ++i)
         {
-            const auto S1 = rightrotate<6>(e) xor rightrotate<11>(e) xor rightrotate<25>(e);
+            const auto S1 = std::rotr(e,6) xor std::rotr(e,11) xor std::rotr(e,25);
             const auto ch = (e bitand f) xor ((compl e) bitand g);
             const auto temp1 = h + S1 + ch + k[i] + words[i];
-            const auto S0 = rightrotate<2>(a) xor rightrotate<13>(a) xor rightrotate<22>(a);
+            const auto S0 = std::rotr(a,2) xor std::rotr(a,13) xor std::rotr(a,22);
             const auto maj = (a bitand b) xor (a bitand c) xor (b bitand c);
             const auto temp2 = S0 + maj;
 
@@ -213,14 +213,15 @@ private:
 
     static constexpr void encode(std::byte* output, const message_length_type length) noexcept
     {
-    	output[7] = narrow(length >>  0);
-    	output[6] = narrow(length >>  8);
-    	output[5] = narrow(length >> 16);
-    	output[4] = narrow(length >> 24);
-    	output[3] = narrow(length >> 32);
-    	output[2] = narrow(length >> 40);
-    	output[1] = narrow(length >> 48);
-    	output[0] = narrow(length >> 56);
+        Expects(output);
+    	output[7] = gsl::narrow_cast<std::byte>(length >>  0);
+    	output[6] = gsl::narrow_cast<std::byte>(length >>  8);
+    	output[5] = gsl::narrow_cast<std::byte>(length >> 16);
+    	output[4] = gsl::narrow_cast<std::byte>(length >> 24);
+    	output[3] = gsl::narrow_cast<std::byte>(length >> 32);
+    	output[2] = gsl::narrow_cast<std::byte>(length >> 40);
+    	output[1] = gsl::narrow_cast<std::byte>(length >> 48);
+    	output[0] = gsl::narrow_cast<std::byte>(length >> 56);
     }
 
     static constexpr std::array<std::uint32_t,64> k =

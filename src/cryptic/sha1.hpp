@@ -3,14 +3,15 @@
 // See LICENCE file or https://opensource.org/licenses/MIT
 
 #pragma once
+#include <bit>
 #include <cstdint>
 #include <algorithm>
 #include <array>
 #include <sstream>
 #include <iomanip>
 #include "gsl/span.hpp"
+#include "gsl/narrow_cast.hpp"
 #include "cryptic/base64.hpp"
-#include "cryptic/helpers.hpp"
 
 namespace cryptic {
 
@@ -57,15 +58,15 @@ public:
     void finalize(span<const std::byte> chunk)
     {
         Expects(chunk.size() < 64);
-        m_message_length += 8ull * static_cast<message_length_type>(chunk.size()); // NOTE, bits
+        m_message_length += 8ull * chunk.size(); // NOTE, bits
         auto temp = std::array<std::byte,64>{};
+        temp.fill(std::byte{0b00000000});
         auto itr = std::copy(chunk.cbegin(), chunk.cend(), temp.begin());
         *itr++ =  std::byte{0b10000000};
-        std::fill(itr, temp.end(), std::byte{0b00000000});
         if(std::distance(itr, temp.end()) < 8)
         {
             transform(temp.data());
-            std::fill_n(temp.begin(), 56, std::byte{0b00000000});
+            temp.fill(std::byte{0b00000000});
         }
         auto length = make_span(temp).last<8>();
         encode(length.data(), m_message_length);
@@ -156,6 +157,7 @@ private:
 
     constexpr void transform(const std::byte* chunk) noexcept
     {
+        Expects(chunk);
         auto words = std::array<std::uint32_t,80>{};
 
         for(auto i = std::uint_fast8_t{0u}, j = std::uint_fast8_t{0u}; i < 16u; ++i, j += 4u)
@@ -165,10 +167,10 @@ private:
                        std::to_integer<uint32_t>(chunk[j+3]);
 
         for(auto i = std::uint_fast8_t{16u}; i < 32u; ++i)
-            words[i] = leftrotate<1>(words[i-3] xor words[i-8] xor words[i-14] xor words[i-16]);
+            words[i] = std::rotl(words[i-3] xor words[i-8] xor words[i-14] xor words[i-16], 1);
 
         for(auto i = std::uint_fast8_t{32u}; i < 80u; ++i)
-            words[i] = leftrotate<2>(words[i-6] xor words[i-16] xor words[i-28] xor words[i-32]);
+            words[i] = std::rotl(words[i-6] xor words[i-16] xor words[i-28] xor words[i-32], 2);
 
         auto a = m_message_digest[0],
              b = m_message_digest[1],
@@ -182,10 +184,10 @@ private:
         {
             f = (b bitand c) bitor ((compl b) bitand d);
             k = 0x5A827999u;
-            auto temp = leftrotate<5>(a) + f + e + k + words[i];
+            auto temp = std::rotl(a,5) + f + e + k + words[i];
             e = d;
             d = c;
-            c = leftrotate<30>(b);
+            c = std::rotl(b,30);
             b = a;
             a = temp;
         }
@@ -194,10 +196,10 @@ private:
         {
             f = b xor c xor d;
             k = 0x6ED9EBA1u;
-            auto temp = leftrotate<5>(a) + f + e + k + words[i];
+            auto temp = std::rotl(a,5) + f + e + k + words[i];
             e = d;
             d = c;
-            c = leftrotate<30>(b);
+            c = std::rotl(b,30);
             b = a;
             a = temp;
         }
@@ -206,10 +208,10 @@ private:
         {
             f = (b bitand c) bitor (b bitand d) bitor (c bitand d);
             k = 0x8F1BBCDCu;
-            auto temp = leftrotate<5>(a) + f + e + k + words[i];
+            auto temp = std::rotl(a,5) + f + e + k + words[i];
             e = d;
             d = c;
-            c = leftrotate<30>(b);
+            c = std::rotl(b,30);
             b = a;
             a = temp;
         }
@@ -218,10 +220,10 @@ private:
         {
             f = b xor c xor d;
             k = 0xCA62C1D6u;
-            auto temp = leftrotate<5>(a) + f + e + k + words[i];
+            auto temp = std::rotl(a,5) + f + e + k + words[i];
             e = d;
             d = c;
-            c = leftrotate<30>(b);
+            c = std::rotl(b,30);
             b = a;
             a = temp;
         }
@@ -235,14 +237,15 @@ private:
 
     static constexpr void encode(std::byte* output, const message_length_type length) noexcept
     {
-    	output[7] = narrow(length >>  0);
-    	output[6] = narrow(length >>  8);
-    	output[5] = narrow(length >> 16);
-    	output[4] = narrow(length >> 24);
-    	output[3] = narrow(length >> 32);
-    	output[2] = narrow(length >> 40);
-    	output[1] = narrow(length >> 48);
-    	output[0] = narrow(length >> 56);
+        Expects(output);
+    	output[7] = gsl::narrow_cast<std::byte>(length >>  0);
+    	output[6] = gsl::narrow_cast<std::byte>(length >>  8);
+    	output[5] = gsl::narrow_cast<std::byte>(length >> 16);
+    	output[4] = gsl::narrow_cast<std::byte>(length >> 24);
+    	output[3] = gsl::narrow_cast<std::byte>(length >> 32);
+    	output[2] = gsl::narrow_cast<std::byte>(length >> 40);
+    	output[1] = gsl::narrow_cast<std::byte>(length >> 48);
+    	output[0] = gsl::narrow_cast<std::byte>(length >> 56);
     }
 
     message_length_type m_message_length;
