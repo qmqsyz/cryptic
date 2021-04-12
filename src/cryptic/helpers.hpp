@@ -3,21 +3,19 @@
 
 namespace cryptic {
 
-using namespace std;
-
 template<typename Integer>
-constexpr byte narrow(Integer number)
+constexpr std::byte narrow(Integer number)
 {
-    static_assert(is_integral_v<Integer>);
-    static_assert(numeric_limits<byte>::digits < numeric_limits<Integer>::digits);
-    return static_cast<byte>(number bitand 0b11111111);
+    static_assert(std::is_integral_v<Integer>);
+    static_assert(std::numeric_limits<std::byte>::digits < std::numeric_limits<Integer>::digits);
+    return static_cast<std::byte>(number);
 }
 
 template<size_t Rotation, typename Unsigned>
 constexpr Unsigned rightrotate(Unsigned number)
 {
-    static_assert(is_unsigned_v<Unsigned>);
-    constexpr auto bits = numeric_limits<Unsigned>::digits;
+    static_assert(std::is_unsigned_v<Unsigned>);
+    constexpr auto bits = std::numeric_limits<Unsigned>::digits;
     static_assert(Rotation <= bits);
     return (number >> Rotation) bitor (number << (bits - Rotation));
 }
@@ -25,8 +23,8 @@ constexpr Unsigned rightrotate(Unsigned number)
 template<size_t Rotation, typename Unsigned>
 constexpr Unsigned leftrotate(Unsigned number)
 {
-    static_assert(is_unsigned_v<Unsigned>);
-    constexpr auto bits = numeric_limits<Unsigned>::digits;
+    static_assert(std::is_unsigned_v<Unsigned>);
+    constexpr auto bits = std::numeric_limits<Unsigned>::digits;
     static_assert(Rotation <= bits);
     return (number << Rotation) bitor (number >> (bits - Rotation));
 }

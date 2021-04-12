@@ -1,12 +1,16 @@
-CXX = clang
+OS := $(shell uname -s)
 
-CXXFLAGS = -I$(SRCDIR) -MMD
-CXXFLAGS += -std=c++17
-CXXFLAGS +=  -Wextra
-CXXFLAGS +=  -Wno-c++98-compat -Wno-c++98-compat-pedantic -Wno-c++98-c++11-compat-binary-literal -Wno-padded -Wno-reserved-id-macro
-CXXFLAGS += -DNDEBUG=1 -O3
+CXX = clang++
 
-LDFLAGS += -lc++ -lSystem -lcrypto
+CXXFLAGS = -std=c++2a -MMD -Wall -Wextra -I./src -I/usr/local/ssl/include/ -Ofast -D__OPTIMIZE__
+
+LDFLAGS = -lcrypto -L/usr/local/ssl/lib
+
+ifeq ($(OS),Darwin)
+CXXFLAGS += -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk
+endif
+
+############
 
 SRCDIR = src
 
@@ -20,8 +24,14 @@ LIBDIR = lib
 
 INCDIR = include
 
-GTESTDIR = ../googletest/googletest
+GTESTDIR = googletest
 
+############
+
+# Make does not offer a recursive wildcard function, so here's one:
+rwildcard = $(wildcard $1$2) $(foreach d,$(wildcard $1*),$(call rwildcard,$d/,$2))
+
+############
 
 TARGETS = $(addprefix $(BINDIR)/, example benchmark)
 
@@ -40,12 +50,6 @@ $(TARGETS): $(OBJECTS)
 	@mkdir -p $(OBJDIR)
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(@:$(BINDIR)/%=$(SRCDIR)/%.cpp) $(OBJECTS) -MF $(@:$(BINDIR)/%=$(OBJDIR)/%.d) -o $@
 
-# LIBRARIES = $(addprefix $(LIBDIR)/, libnet4cpp.a)
-#
-# $(LIBRARIES) : $(OBJECTS)
-# 	@mkdir -p $(@D)
-# 	$(AR) $(ARFLAGS) $@ $^
-
 HEADERS = $(wildcard $(SRCDIR)/*.hpp $(SRCDIR)/*/*.hpp $(SRCDIR)/*/*/*.hpp)
 
 INCLUDES = $(HEADERS:$(SRCDIR)/%.hpp=$(INCDIR)/%.hpp)
@@ -54,38 +58,41 @@ $(INCDIR)/%.hpp: $(SRCDIR)/%.hpp
 	@mkdir -p $(@D)
 	cp $< $@
 
+############
 
-GTEST_TARGET = $(BINDIR)/test
+GTESTLIBS = $(addprefix $(LIBDIR)/, libgtest.a libgtest_main.a)
 
-GTESTLIB = $(GTESTDIR)/make/gtest_main.a
+$(GTESTLIBS):
+	cd $(GTESTDIR) && cmake -DCMAKE_CXX_COMPILER="$(CXX)" -DCMAKE_CXX_FLAGS="$(CXXFLAGS)" -DCMAKE_INSTALL_PREFIX=.. . && make install
 
-GTEST_SOURCES = $(wildcard $(TESTDIR)/*.cpp $(TESTDIR)/*/*.cpp $(TESTDIR)/*/*/*.cpp $(TESTDIR)/*/*/*/*.cp)
+############
 
-GTEST_OBJECTS = $(GTEST_SOURCES:$(TESTDIR)/%.cpp=$(OBJDIR)/$(TESTDIR)/%.o)
+TEST_SOURCES = $(call rwildcard,$(TESTDIR)/,*.cpp)
 
-$(OBJDIR)/$(TESTDIR)/%.o: $(TESTDIR)/%.cpp
+TEST_OBJECTS = $(TEST_SOURCES:$(TESTDIR)/%.cpp=$(OBJDIR)/$(TESTDIR)/%.o)
+
+TEST_TARGET = $(BINDIR)/test
+
+$(OBJDIR)/$(TESTDIR)/%.o: $(TESTDIR)/%.cpp $(GTESTLIBS) $(INCLUDES)
 	@mkdir -p $(@D)
-	$(CXX) -I$(GTESTDIR)/include/ --system-header-prefix=gtest $(CXXFLAGS) -c $< -o $@
+	$(CXX) $(CXXFLAGS) -I$(INCDIR) -c $< -o $@
 
-$(GTEST_TARGET): $(OBJECTS) $(GTEST_OBJECTS)
+$(TEST_TARGET): $(TEST_OBJECTS) $(LIBRARY)
 	@mkdir -p $(@D)
-	$(CXX) $(LDFLAGS) $(OBJECTS) $(GTEST_OBJECTS) $(GTESTLIB) -o $@
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(TEST_OBJECTS) $(LIBRARY) $(GTESTLIBS) -o $@
 
+############
 
-DEPENDENCIES = $(MAINS:$(SRCDIR)/%.cpp=$(OBJDIR)/%.d) $(OBJECTS:%.o=%.d) $(GTEST_OBJECTS:%.o=%.d)
+DEPENDENCIES = $(MAINS:$(SRCDIR)/%.cpp=$(OBJDIR)/%.d) $(OBJECTS:%.o=%.d) $(TEST_OBJECTS:%.o=%.d)
 
-.PHONY: bin
-bin: $(TARGETS)
-
-.PHONY: lib
-lib: $(LIBRARIES) $(INCLUDES)
-
-.PHONY: test
-test: $(GTEST_TARGET)
-	$(GTEST_TARGET)
+############
 
 .PHONY: all
-all: $(TARGETS) $(LIBRARIES) $(GTEST_TARGET)
+all: $(INCLUDES) $(TARGETS)
+
+.PHONY: test
+test: $(TEST_TARGET)
+	$(TEST_TARGET)
 
 .PHONY: clean
 clean:
@@ -96,16 +103,15 @@ clean:
 
 .PHONY: dump
 dump:
-	@echo $(TARGETS)
-	@echo $(MAINS)
 	@echo $(SOURCES)
 	@echo $(OBJECTS)
-	@echo $(LIBRARIES)
+	@echo $(LIBRARY)
 	@echo $(HEADERS)
 	@echo $(INCLUDES)
-	@echo $(GTEST_TARGET)
-	@echo $(GTEST_SOURCES)
-	@echo $(GTEST_OBJECTS)
+	@echo $(TEST_SOURCES)
+	@echo $(TEST_OBJECTS)
+	@echo $(TEST_TARGET)
+	@echo $(GTESTLIBS)
 	@echo $(DEPENDENCIES)
 
 -include $(DEPENDENCIES)

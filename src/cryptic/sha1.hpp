@@ -3,10 +3,11 @@
 // See LICENCE file or https://opensource.org/licenses/MIT
 
 #pragma once
+#include <cstdint>
+#include <algorithm>
 #include <array>
 #include <sstream>
 #include <iomanip>
-#include <algorithm>
 #include "gsl/span.hpp"
 #include "cryptic/base64.hpp"
 #include "cryptic/helpers.hpp"
@@ -19,9 +20,11 @@ class sha1
 {
 public:
 
-    using size_type = std::uint64_t;
+    using message_length_type = std::uint64_t;
 
-    sha1() noexcept :
+    using buffer_type = std::array<std::byte,20>;
+
+    constexpr sha1() noexcept :
         m_message_length{0ull},
         m_message_digest{0x67452301u,
                          0xEFCDAB89u,
@@ -30,105 +33,141 @@ public:
                          0xC3D2E1F0u}
     {}
 
-    sha1(span<const byte> message) noexcept : sha1()
+    sha1(span<const std::byte> message) noexcept : sha1()
     {
         hash(message);
     }
 
-    void hash(span<const byte> message) noexcept
+    constexpr void reset()
     {
+        m_message_length = 0ull;
         m_message_digest[0] = 0x67452301u;
         m_message_digest[1] = 0xEFCDAB89u;
         m_message_digest[2] = 0x98BADCFEu;
         m_message_digest[3] = 0x10325476u;
         m_message_digest[4] = 0xC3D2E1F0u;
-        m_message_length += 8ull * static_cast<size_type>(message.size());
+    }
 
+    void update(span<const std::byte,64> chunk) noexcept
+    {
+        m_message_length += 8ull * 64ull; // NOTE, bits
+        transform(chunk.data());
+    }
+
+    void finalize(span<const std::byte> chunk)
+    {
+        Expects(chunk.size() < 64);
+        m_message_length += 8ull * static_cast<message_length_type>(chunk.size()); // NOTE, bits
+        auto temp = std::array<std::byte,64>{};
+        auto itr = std::copy(chunk.cbegin(), chunk.cend(), temp.begin());
+        *itr++ =  std::byte{0b10000000};
+        std::fill(itr, temp.end(), std::byte{0b00000000});
+        if(std::distance(itr, temp.end()) < 8)
+        {
+            transform(temp.data());
+            std::fill_n(temp.begin(), 56, std::byte{0b00000000});
+        }
+        auto length = make_span(temp).last<8>();
+        encode(length.data(), m_message_length);
+        transform(temp.data());
+    }
+
+    void hash(span<const std::byte> message) noexcept
+    {
+        reset();
         while(message.size() >= 64)
         {
-            const auto chunk = message.first<64>();
-            transform(chunk);
+            update(message);
             message = message.subspan<64>();
         }
+        finalize(message);
+    }
 
-        auto chunk = array<byte,64>{};
-        auto itr = copy(message.cbegin(), message.cend(), chunk.begin());
-        *itr++ = byte{0b10000000};
-        fill(itr, chunk.end(), byte{0b00000000});
-
-        if(distance(itr, chunk.end()) < 8)
+    void encode(span<std::byte,20> other) const noexcept
+    {
+        const auto bytes = as_bytes(make_span(m_message_digest));
+    	for(auto i = std::uint_fast8_t{0u}; i < 20u; i += 4u)
         {
-            transform(chunk);
-            fill_n(chunk.begin(), 56, byte{0b00000000});
+    		other[i+0] = bytes[i+3];
+    		other[i+1] = bytes[i+2];
+    		other[i+2] = bytes[i+1];
+    		other[i+3] = bytes[i+0];
         }
-
-        const auto length = make_span(chunk).last<8>();
-        encode(length, m_message_length);
-        transform(chunk);
     }
 
-    void encode(span<byte,20> output) const noexcept
+    std::string base64() const
     {
-    	for(auto i = 0, j = 0; j < output.size(); ++i, j += 4)
-        {
-    		output[j+3] = narrow(m_message_digest[i]      );
-    		output[j+2] = narrow(m_message_digest[i] >>  8);
-    		output[j+1] = narrow(m_message_digest[i] >> 16);
-    		output[j+0] = narrow(m_message_digest[i] >> 24);
-    	}
-    }
-
-    constexpr size_type size() const
-    {
-        return 20;
-    }
-
-    string base64() const
-    {
-        auto buffer = array<byte,20>{};
+        auto buffer = buffer_type{};
         encode(buffer);
         return base64::encode(buffer);
     }
 
-    static string base64(span<const byte> message)
+    static std::string base64(span<const std::byte> message)
     {
         const auto hash = sha1{message};
         return hash.base64();
     }
 
-    string hexadecimal() const
+    std::string hexadecimal() const
     {
-        auto ss = stringstream{};
-        ss << setw(8) << setfill('0') << hex << m_message_digest[0u]
-           << setw(8) << setfill('0') << hex << m_message_digest[1u]
-           << setw(8) << setfill('0') << hex << m_message_digest[2u]
-           << setw(8) << setfill('0') << hex << m_message_digest[3u]
-           << setw(8) << setfill('0') << hex << m_message_digest[4u];
+        auto ss = std::stringstream{};
+        ss << std::setw(8) << std::setfill('0') << std::hex << m_message_digest[0u]
+           << std::setw(8) << std::setfill('0') << std::hex << m_message_digest[1u]
+           << std::setw(8) << std::setfill('0') << std::hex << m_message_digest[2u]
+           << std::setw(8) << std::setfill('0') << std::hex << m_message_digest[3u]
+           << std::setw(8) << std::setfill('0') << std::hex << m_message_digest[4u];
         return ss.str();
     }
 
-    static string hexadecimal(span<const byte> message)
+    static std::string hexadecimal(span<const std::byte> message)
     {
         const auto hash = sha1{message};
         return hash.hexadecimal();
     }
 
+    constexpr std::size_t size() const noexcept
+    {
+        return 20ul;
+    }
+
+    bool operator < (const sha1& other) const noexcept
+    {
+    	for(auto i = std::uint_fast8_t{0u}; i < sizeof m_message_digest; ++i)
+            if(m_message_digest[i] != other.m_message_digest[i])
+                return m_message_digest[i] < other.m_message_digest[i];
+        return false;
+    }
+
+    bool operator < (span<const std::byte, 20> other) const noexcept
+    {
+        const auto bytes = as_bytes(make_span(m_message_digest));
+    	for(auto i = std::uint_fast8_t{0u}; i < other.size(); i += 4u)
+        {
+    		if(bytes[i+3] != other[i+0]) return bytes[i+3] < other[i+0];
+    		if(bytes[i+2] != other[i+1]) return bytes[i+2] < other[i+1];
+    		if(bytes[i+1] != other[i+2]) return bytes[i+1] < other[i+2];
+    		if(bytes[i+0] != other[i+3]) return bytes[i+0] < other[i+3];
+        }
+        return false;
+        return true;
+    }
+
 private:
 
-    void transform(span<const byte, 64> chunk) noexcept
+    constexpr void transform(const std::byte* chunk) noexcept
     {
-        auto words = array<uint32_t,80>{};
+        auto words = std::array<std::uint32_t,80>{};
 
-        for(auto i = 0u, j = 0u; i < 16u; ++i, j += 4u)
-            words[i] = to_integer<uint32_t>(chunk[j+0]) << 24 xor
-                       to_integer<uint32_t>(chunk[j+1]) << 16 xor
-                       to_integer<uint32_t>(chunk[j+2]) <<  8 xor
-                       to_integer<uint32_t>(chunk[j+3]);
+        for(auto i = std::uint_fast8_t{0u}, j = std::uint_fast8_t{0u}; i < 16u; ++i, j += 4u)
+            words[i] = std::to_integer<uint32_t>(chunk[j+0]) << 24 xor
+                       std::to_integer<uint32_t>(chunk[j+1]) << 16 xor
+                       std::to_integer<uint32_t>(chunk[j+2]) <<  8 xor
+                       std::to_integer<uint32_t>(chunk[j+3]);
 
-        for(auto i = 16u; i < 32u; ++i)
+        for(auto i = std::uint_fast8_t{16u}; i < 32u; ++i)
             words[i] = leftrotate<1>(words[i-3] xor words[i-8] xor words[i-14] xor words[i-16]);
 
-        for(auto i = 32u; i < 80u; ++i)
+        for(auto i = std::uint_fast8_t{32u}; i < 80u; ++i)
             words[i] = leftrotate<2>(words[i-6] xor words[i-16] xor words[i-28] xor words[i-32]);
 
         auto a = m_message_digest[0],
@@ -139,7 +178,7 @@ private:
              f = 0u,
              k = 0u;
 
-        for(auto i = 0u; i < 20u; ++i)
+        for(auto i = std::uint_fast8_t{0u}; i < 20u; ++i)
         {
             f = (b bitand c) bitor ((compl b) bitand d);
             k = 0x5A827999u;
@@ -151,7 +190,7 @@ private:
             a = temp;
         }
 
-        for(auto i = 20u; i < 40u; ++i)
+        for(auto i = std::uint_fast8_t{20u}; i < 40u; ++i)
         {
             f = b xor c xor d;
             k = 0x6ED9EBA1u;
@@ -163,7 +202,7 @@ private:
             a = temp;
         }
 
-        for(auto i = 40u; i < 60u; ++i)
+        for(auto i = std::uint_fast8_t{40u}; i < 60u; ++i)
         {
             f = (b bitand c) bitor (b bitand d) bitor (c bitand d);
             k = 0x8F1BBCDCu;
@@ -175,7 +214,7 @@ private:
             a = temp;
         }
 
-        for(auto i = 60u; i < 80u; ++i)
+        for(auto i = std::uint_fast8_t{60u}; i < 80u; ++i)
         {
             f = b xor c xor d;
             k = 0xCA62C1D6u;
@@ -194,7 +233,7 @@ private:
         m_message_digest[4] += e;
     }
 
-    static void encode(span<byte,8> output, const size_type length) noexcept
+    static constexpr void encode(std::byte* output, const message_length_type length) noexcept
     {
     	output[7] = narrow(length >>  0);
     	output[6] = narrow(length >>  8);
@@ -206,9 +245,9 @@ private:
     	output[0] = narrow(length >> 56);
     }
 
-    size_type m_message_length;
+    message_length_type m_message_length;
 
-    array<uint32_t,5> m_message_digest;
+    std::array<std::uint32_t,5> m_message_digest;
 };
 
 } // namespace cryptic

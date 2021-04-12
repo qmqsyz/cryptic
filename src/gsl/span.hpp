@@ -98,21 +98,19 @@ public:
     {}
 
     template <class Container>
-    constexpr span(Container& cont) :
-        m_data{reinterpret_cast<pointer>(cont.data())},
-        m_size{cont.size()}
+    constexpr span(Container& container) :
+        m_data{reinterpret_cast<pointer>(container.data())},
+        m_size{container.size()}
     {
-        static_assert(std::is_same_v<const std::byte,element_type> ||
-                      std::is_convertible_v<typename Container::pointer,pointer>, "Not convertible");
+        Expects(Extent == dynamic_extent || container.size() >= Extent);
     }
 
     template <class Container>
-    constexpr span(const Container& cont) :
-        m_data{reinterpret_cast<pointer>(cont.data())},
-        m_size{cont.size()}
+    constexpr span(const Container& container) :
+        m_data{reinterpret_cast<pointer>(container.data())},
+        m_size{container.size()}
     {
-        static_assert(std::is_same_v<const std::byte,element_type> ||
-                      std::is_convertible_v<typename Container::const_pointer,pointer>, "Not convertible");
+        Expects(Extent == dynamic_extent || container.size() >= Extent);
     }
 
     // template <class Container> span(const Container&&) = delete;
@@ -127,6 +125,7 @@ public:
     {
         static_assert(std::is_convertible_v<OtherElementType,ElementType>, "Not convertible");
         static_assert(OtherExtent <= Extent, "Size mismatch");
+        Expects(other.size() <= Extent);
     }
 
     template <class OtherElementType, std::ptrdiff_t OtherExtent>
@@ -135,6 +134,7 @@ public:
     {
         static_assert(std::is_convertible_v<OtherElementType,ElementType>, "Not convertible");
         static_assert(OtherExtent <= Extent, "Size mismatch");
+        Expects(other.size() <= Extent);
     }
 
     ~span() noexcept = default;
@@ -314,18 +314,14 @@ constexpr bool operator>=(const span<ElementType, Extent>& l, const span<Element
 }
 
 // [span.objectrep], views of object representation
-// template <class ElementType, std::ptrdiff_t Extentt>
-// span<const std::byte, ((Extent == dynamic_extent) ? dynamic_extent : (Extent * sizeof(ElementType)))> as_bytes(span<const ElementType, Extent> s) noexcept
-template <class ElementType>
-span<const std::byte> as_bytes(span<const ElementType> s) noexcept
+template <class ElementType, std::ptrdiff_t Extent>
+span<const std::byte, ((Extent == dynamic_extent) ? dynamic_extent : (Extent * sizeof(ElementType)))> as_bytes(span<const ElementType, Extent> s) noexcept
 {
     return {reinterpret_cast<const std::byte*>(s.data()), s.length_bytes()};
 }
 
-// template <class ElementType, std::ptrdiff_t Extent = dynamic_extent>
-// span<std::byte, ((Extent == dynamic_extent) ? dynamic_extent : (Extent * sizeof(ElementType)))> as_writeable_bytes(span<ElementType, Extent> s) noexcept
-template <class ElementType>
-span<std::byte> as_writeable_bytes(span<ElementType> s) noexcept
+template <class ElementType, std::ptrdiff_t Extent = dynamic_extent>
+span<std::byte, ((Extent == dynamic_extent) ? dynamic_extent : (Extent * sizeof(ElementType)))> as_writeable_bytes(span<ElementType, Extent> s) noexcept
 {
     return {reinterpret_cast<std::byte*>(s.data()), s.length_bytes()};
 }
