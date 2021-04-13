@@ -30,9 +30,9 @@ public:
     {}
 
     template<typename T>
-    sha1(T message) noexcept : sha1()
+    sha1(T&& message) noexcept : sha1()
     {
-        hash(message);
+        hash(std::forward<T>(message));
     }
 
     void hash(std::span<const std::byte> message) noexcept
@@ -47,9 +47,9 @@ public:
     }
 
     template<typename T>
-    void hash(T message) noexcept
+    void hash(T&& message) noexcept
     {
-        hash(std::as_bytes(std::span{message}));
+        hash(std::as_bytes(std::span{std::forward<T>(message)}));
     }
 
     void encode(std::span<std::byte,20> other) const noexcept
@@ -72,9 +72,9 @@ public:
     }
 
     template<typename T>
-    static std::string base64(T message)
+    static std::string base64(T&& message)
     {
-        const auto hash = sha1{message};
+        const auto hash = sha1{std::forward<T>(message)};
         return hash.base64();
     }
 
@@ -90,9 +90,9 @@ public:
     }
 
     template<typename T>
-    static std::string hexadecimal(T message)
+    static std::string hexadecimal(T&& message)
     {
-        const auto hash = sha1{message};
+        const auto hash = sha1{std::forward<T>(message)};
         return hash.hexadecimal();
     }
 
