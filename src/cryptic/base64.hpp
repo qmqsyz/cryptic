@@ -68,9 +68,9 @@ namespace cryptic::base64 {
         return encoded;
     }
 
-    inline std::string encode(const std::string& source)
+    inline std::string encode(std::string_view source)
     {
-        return encode(std::as_bytes(std::span{source}));
+        return encode(std::as_bytes(std::span{source.cbegin(),source.cend()}));
     }
 
     inline std::string decode(std::string_view source)

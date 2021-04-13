@@ -26,10 +26,14 @@ public:
         m_message_digest{H0,H1,H2,H3,H4,H5,H6,H7}
     {}
 
-    template<typename T>
-    sha2(T&& message) noexcept : sha2()
+    sha2(std::span<const std::byte> message) noexcept : sha2()
     {
-        hash(std::forward<T>(message));
+        hash(message);
+    }
+
+    sha2(std::string_view message) noexcept : sha2()
+    {
+        hash(message);
     }
 
     sha2(const sha2&) = default;
@@ -47,10 +51,9 @@ public:
         finalize(message);
     }
 
-    template<typename T>
-    void hash(T&& message) noexcept
+    void hash(std::string_view message) noexcept
     {
-        hash(std::as_bytes(std::span{std::forward<T>(message)}));
+        hash(std::as_bytes(std::span{message.cbegin(),message.cend()}));
     }
 
     void encode(std::span<std::byte, 4 * N> other) const noexcept
@@ -72,10 +75,15 @@ public:
         return base64::encode(buffer);
     }
 
-    template<typename T>
-    static std::string base64(T&& message)
+    static std::string base64(std::span<const std::byte> message)
     {
-        auto hash = sha2{std::forward<T>(message)};
+        const auto hash = sha2{message};
+        return hash.base64();
+    }
+
+    static std::string base64(std::string_view message)
+    {
+        const auto hash = sha2{message};
         return hash.base64();
     }
 
@@ -87,10 +95,15 @@ public:
         return ss.str();
     }
 
-    template<typename T>
-    static std::string hexadecimal(T&& message)
+    static std::string hexadecimal(std::span<const std::byte> message)
     {
-        const auto hash = sha2{std::forward<T>(message)};
+        const auto hash = sha2{message};
+        return hash.hexadecimal();
+    }
+
+    static std::string hexadecimal(std::string_view message)
+    {
+        const auto hash = sha2{message};
         return hash.hexadecimal();
     }
 
