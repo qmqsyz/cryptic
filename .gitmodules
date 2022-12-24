@@ -1,3 +1,4 @@
 [submodule "googletest"]
 	path = googletest
 	url = ./googletest
+    ignore = all

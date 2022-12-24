@@ -1,30 +1,37 @@
+.DEFAULT_GOAL := all
+
 OS := $(shell uname -s)
+CXX := clang++
 
-CXX = clang++
-
-CXXFLAGS = -std=c++2a -MMD -Wall -Wextra -I./src -I/usr/local/ssl/include/ -Ofast -D__OPTIMIZE__
-
-LDFLAGS = -lcrypto -L/usr/local/ssl/lib
+ifeq ($(OS),Linux)
+CS :=  /usr/lib/llvm-15/bin/clang
+CXX := /usr/lib/llvm-15/bin/clang++
+CXXFLAGS = -pthread -I/usr/local/include
+LDFLAGS = -L/usr/local/lib
+endif
 
 ifeq ($(OS),Darwin)
-CXXFLAGS += -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk
+CC := /Library/Developer/CommandLineTools/usr/bin/clang
+CXX := /Library/Developer/CommandLineTools/usr/bin/clang++
+CXXFLAGS = -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk
 endif
+
+CXXFLAGS += -std=c++20 -stdlib=libc++ -MMD -Wall -Wextra -I$(SRCDIR) -I/usr/local/ssl/include/ -Ofast -D__OPTIMIZE__ #-DDEBUG
+
+LDFLAGS += -lc++
 
 ############
 
 SRCDIR = src
-
 TESTDIR = test
-
 OBJDIR = obj
-
 BINDIR = bin
-
 LIBDIR = lib
-
 INCDIR = include
-
 GTESTDIR = googletest
+
+.SUFFIXES:
+.SUFFIXES: .cpp .hpp .o .a
 
 ############
 
@@ -33,24 +40,21 @@ rwildcard = $(wildcard $1$2) $(foreach d,$(wildcard $1*),$(call rwildcard,$d/,$2
 
 ############
 
-TARGETS = $(addprefix $(BINDIR)/, example benchmark)
-
-MAINS	= $(TARGETS:$(BINDIR)/%=$(SRCDIR)/%.cpp)
-
-SOURCES = $(filter-out $(MAINS), $(wildcard $(SRCDIR)/*.cpp $(SRCDIR)/*/*.cpp $(SRCDIR)/*/*/*.cpp))
+SOURCES = $(call rwildcard,$(SRCDIR)/,*.cpp)
 
 OBJECTS = $(SOURCES:$(SRCDIR)/%.cpp=$(OBJDIR)/%.o)
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.cpp
 	@mkdir -p $(@D)
-	$(CXX) $(CXXFLAGS) -c $< -o $@
+	$(CXX) $(CXXFLAGS) -I$(SRCDIR) -c $< -o $@
 
-$(TARGETS): $(OBJECTS)
-	@mkdir -p $(BINDIR)
-	@mkdir -p $(OBJDIR)
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(@:$(BINDIR)/%=$(SRCDIR)/%.cpp) $(OBJECTS) -MF $(@:$(BINDIR)/%=$(OBJDIR)/%.d) -o $@
+$(LIBRARY) : $(OBJECTS)
+	@mkdir -p $(@D)
+	$(AR) $(ARFLAGS) $@ $^
 
-HEADERS = $(wildcard $(SRCDIR)/*.hpp $(SRCDIR)/*/*.hpp $(SRCDIR)/*/*/*.hpp)
+############
+
+HEADERS = $(call rwildcard,$(SRCDIR)/,*.hpp)
 
 INCLUDES = $(HEADERS:$(SRCDIR)/%.hpp=$(INCDIR)/%.hpp)
 
@@ -63,7 +67,8 @@ $(INCDIR)/%.hpp: $(SRCDIR)/%.hpp
 GTESTLIBS = $(addprefix $(LIBDIR)/, libgtest.a libgtest_main.a)
 
 $(GTESTLIBS):
-	cd $(GTESTDIR) && cmake -DCMAKE_CXX_COMPILER="$(CXX)" -DCMAKE_CXX_FLAGS="$(CXXFLAGS)" -DCMAKE_INSTALL_PREFIX=.. . && make install
+	git submodule update --init --recursive --depth 1
+	cd $(GTESTDIR) && cmake -DCMAKE_C_COMPILER="$(CC)" -DCMAKE_CXX_COMPILER="$(CXX)" -DCMAKE_CXX_FLAGS="$(CXXFLAGS)" -DCMAKE_INSTALL_PREFIX=.. . && make install
 
 ############
 
@@ -88,30 +93,19 @@ DEPENDENCIES = $(MAINS:$(SRCDIR)/%.cpp=$(OBJDIR)/%.d) $(OBJECTS:%.o=%.d) $(TEST_
 ############
 
 .PHONY: all
-all: $(INCLUDES) $(TARGETS)
+all: $(INCLUDES)
 
 .PHONY: test
-test: $(TEST_TARGET)
+test: $(INCLUDES) $(TEST_TARGET)
 	$(TEST_TARGET)
 
 .PHONY: clean
 clean:
-	@rm -rf $(OBJDIR)
-	@rm -rf $(BINDIR)
-	@rm -rf $(LIBDIR)
-	@rm -rf $(INCDIR)
+	@rm -rf $(OBJDIR) $(BINDIR) $(LIBDIR) $(INCDIR)
 
 .PHONY: dump
 dump:
-	@echo $(SOURCES)
-	@echo $(OBJECTS)
-	@echo $(LIBRARY)
-	@echo $(HEADERS)
-	@echo $(INCLUDES)
-	@echo $(TEST_SOURCES)
-	@echo $(TEST_OBJECTS)
-	@echo $(TEST_TARGET)
-	@echo $(GTESTLIBS)
-	@echo $(DEPENDENCIES)
+	$(foreach v, $(sort $(.VARIABLES)), $(if $(filter file,$(origin $(v))), $(info $(v)=$($(v)))))
+	@echo ''
 
 -include $(DEPENDENCIES)
