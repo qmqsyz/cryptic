@@ -18,7 +18,7 @@ endif
 
 CXXFLAGS += -std=c++20 -stdlib=libc++ -MMD -Wall -Wextra -I$(SRCDIR) -I/usr/local/ssl/include/ -Ofast -D__OPTIMIZE__ #-DDEBUG
 
-LDFLAGS += -lc++
+LDFLAGS += -lc++ -lcrypto -L/usr/local/ssl/lib
 
 ############
 
