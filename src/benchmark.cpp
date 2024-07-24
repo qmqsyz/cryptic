@@ -132,11 +132,11 @@ int main()
     std::clog << "cryptic SHA1: " << t1 << " ms\n";
     auto const t2 = crypto_hsa1_test();
     std::clog << "openssl crypto SHA1: "<< t2 << " ms\n";
-    std::clog << "crypto SHA1 was " << t1/t2 << " times faster\n";
+    std::clog << "openssl SHA1 was " << t1/t2 << " times faster\n";
     auto const t3 = cryptic_hsa256_test();
     std::clog << "cryptic SHA256: "<< t3 << " ms\n";
     auto const t4 = crypto_hsa256_test();
     std::clog << "openssl crypto SHA256: " << t4 << " ms\n";
-    std::clog << "crypto SHA256 was " << t3/t4 << " times faster\n";
+    std::clog << "openssl SHA256 was " << t3/t4 << " times faster\n";
     return 0;
 }
