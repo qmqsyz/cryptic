@@ -20,7 +20,7 @@ public:
 
     using buffer_type = std::array<std::byte,20>;
 
-    constexpr sha1() noexcept :
+    consteval sha1() noexcept :
         m_message_length{0ull},
         m_message_digest{0x67452301u,
                          0xEFCDAB89u,
@@ -109,7 +109,7 @@ public:
         return hash.hexadecimal();
     }
 
-    constexpr std::size_t size() const noexcept
+    consteval std::size_t size() const noexcept
     {
         return 20ul;
     }

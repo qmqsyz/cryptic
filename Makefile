@@ -18,7 +18,8 @@ CXX := /Library/Developer/CommandLineTools/usr/bin/clang++
 CXXFLAGS = -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk
 endif
 
-CXXFLAGS += -std=c++23 -stdlib=libc++ -MMD -Wall -Wextra -I$(SRCDIR) -I/usr/local/ssl/include/ -Ofast -D__OPTIMIZE__ #-DDEBUG
+CXXFLAGS += -std=c++23 -stdlib=libc++ -MMD -Wall -Wextra -I$(SRCDIR) -I/usr/local/ssl/include/
+CXXFLAGS += -Ofast -D__OPTIMIZE__ #-DDEBUG
 CXXFLAGS += -Wno-deprecated-declarations
 LDFLAGS += -lc++ -lcrypto -L/usr/local/ssl/lib
 
@@ -53,7 +54,7 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.cpp
 
 $(BINDIR)/%: $(SRCDIR)/%.cpp
 	@mkdir -p $(@D)
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) $^ -o $@
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $< -o $@
 
 $(LIBRARY) : $(OBJECTS)
 	@mkdir -p $(@D)
@@ -109,6 +110,8 @@ test: $(INCLUDES) $(TEST_TARGET)
 .PHONY: benchmark
 benchmark: ./bin/benchmark
 	./bin/benchmark
+
+./bin/benchmark: src/cryptic/sha1.hpp src/cryptic/sha2.hpp src/cryptic/base64.hpp
 
 .PHONY: clean
 clean:

@@ -10,7 +10,7 @@ using namespace std::string_literals;
 
 TEST(CrypticSHA1,Base64)
 {
-    auto hash = cryptic::sha1{};
+    constexpr auto hash = cryptic::sha1{};
     EXPECT_EQ(20ul, hash.size());
 
     auto test1 = ""s;

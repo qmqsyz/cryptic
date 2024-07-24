@@ -21,7 +21,7 @@ public:
 
     using buffer_type = std::array<std::byte, 4 * N>;
 
-    constexpr sha2() noexcept :
+    consteval sha2() noexcept :
         m_message_length{0ull},
         m_message_digest{H0,H1,H2,H3,H4,H5,H6,H7}
     {}
@@ -107,7 +107,7 @@ public:
         return hash.hexadecimal();
     }
 
-    constexpr std::size_t size() const noexcept
+    consteval std::size_t size() const noexcept
     {
         return 4 * N;
     }
