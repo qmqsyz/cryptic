@@ -6,6 +6,7 @@
 #include <string>
 #include <array>
 #include <span>
+#include <cassert>
 #include <algorithm>
 #include "gsl/assert.hpp"
 

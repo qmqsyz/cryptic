@@ -6,8 +6,8 @@ OS := $(shell uname -s)
 CXX := clang++
 
 ifeq ($(OS),Linux)
-CS :=  /usr/lib/llvm-15/bin/clang
-CXX := /usr/lib/llvm-15/bin/clang++
+CC :=  /usr/lib/llvm-18/bin/clang
+CXX := /usr/lib/llvm-18/bin/clang++
 CXXFLAGS = -pthread -I/usr/local/include
 LDFLAGS = -L/usr/local/lib
 endif
@@ -18,9 +18,9 @@ CXX := /Library/Developer/CommandLineTools/usr/bin/clang++
 CXXFLAGS = -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk
 endif
 
-CXXFLAGS += -std=c++20 -stdlib=libc++ -MMD -Wall -Wextra -I$(SRCDIR) -I/usr/local/ssl/include/ -Ofast -D__OPTIMIZE__ #-DDEBUG
+CXXFLAGS += -std=c++23 -stdlib=libc++ -MMD -Wall -Wextra -I$(SRCDIR) -I/usr/local/ssl/include/ -Ofast -D__OPTIMIZE__ #-DDEBUG
 
-LDFLAGS += -lc++ -lcrypto -L/usr/local/ssl/lib
+LDFLAGS += -lc++ #-lcrypto -L/usr/local/ssl/lib
 
 ############
 
