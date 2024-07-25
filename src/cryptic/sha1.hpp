@@ -41,13 +41,15 @@ public:
 
     void hash(std::span<const std::byte> message) noexcept
     {
+        constexpr auto chunk = 64u;
         reset();
-        while(message.size() >= 64)
+        for(auto offset = 0ull; offset <= message.size(); offset += chunk)
         {
-            update(message.first<64>());
-            message = message.subspan<64>();
+            if((offset + chunk) <= message.size())
+                 update(message.subspan(offset,chunk));
+            else
+                finalize(message.subspan(offset, message.size() - offset));
         }
-        finalize(message);
     }
 
     void hash(std::string_view message) noexcept
@@ -148,8 +150,9 @@ private:
         m_message_digest[4] = 0xC3D2E1F0u;
     }
 
-    void update(std::span<const std::byte,64> chunk) noexcept
+    void update(std::span<const std::byte> chunk) noexcept
     {
+        Expects(chunk.size() == 64u);
         m_message_length += 8ull * 64ull; // NOTE, bits
         transform(chunk.data());
     }
