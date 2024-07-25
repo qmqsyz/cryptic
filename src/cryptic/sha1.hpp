@@ -135,7 +135,6 @@ public:
     		if(bytes[i+0] != other[i+3]) return bytes[i+0] < other[i+3];
         }
         return false;
-        return true;
     }
 
 private:
