@@ -160,7 +160,6 @@ private:
 
     constexpr void transform(std::span<const std::byte,chunk_size> chunk) noexcept
     {
-        Expects(chunk);
         auto words = std::array<std::uint32_t,80>{};
 
         for(auto i = std::uint_fast8_t{0u}, j = std::uint_fast8_t{0u}; i < 16u; ++i, j += 4u)
