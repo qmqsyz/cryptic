@@ -29,32 +29,24 @@ public:
                          0xC3D2E1F0u}
     {}
 
-    sha1(std::span<const std::byte> message) noexcept : sha1()
+    sha1(auto message) noexcept : sha1()
     {
         hash(message);
     }
 
-    sha1(std::string_view message) noexcept : sha1()
+    void hash(auto message) noexcept
     {
-        hash(message);
-    }
-
-    void hash(std::span<const std::byte> message) noexcept
-    {
-        constexpr auto chunk = 64u;
         reset();
-        for(auto offset = 0ull; offset <= message.size(); offset += chunk)
-        {
-            if((offset + chunk) <= message.size())
-                 update(message.subspan(offset,chunk));
-            else
-                finalize(message.subspan(offset, message.size() - offset));
-        }
-    }
 
-    void hash(std::string_view message) noexcept
-    {
-        hash(std::as_bytes(std::span{message.cbegin(),message.cend()}));
+        const auto bytes = std::as_bytes(std::span{message});
+
+        for(auto offset = 0ull; offset <= bytes.size(); offset += chunk_size)
+        {
+            if((offset + chunk_size) <= bytes.size_bytes())
+                update(bytes.subspan(offset,chunk_size));
+            else
+                finalize(bytes.subspan(offset, bytes.size_bytes() - offset));
+        }
     }
 
     void encode(std::span<std::byte,20> other) const noexcept
@@ -76,13 +68,7 @@ public:
         return base64::encode(buffer);
     }
 
-    static std::string base64(std::span<const std::byte> message)
-    {
-        const auto hash = sha1{message};
-        return hash.base64();
-    }
-
-    static std::string base64(std::string_view message)
+    static std::string base64(auto message)
     {
         const auto hash = sha1{message};
         return hash.base64();
@@ -99,13 +85,7 @@ public:
         return ss.str();
     }
 
-    static std::string hexadecimal(std::span<const std::byte> message)
-    {
-        const auto hash = sha1{message};
-        return hash.hexadecimal();
-    }
-
-    static std::string hexadecimal(std::string_view message)
+    static std::string hexadecimal(auto message)
     {
         const auto hash = sha1{message};
         return hash.hexadecimal();
@@ -139,6 +119,8 @@ public:
 
 private:
 
+    static constexpr std::uint64_t chunk_size = 64u;
+
     constexpr void reset()
     {
         m_message_length = 0ull;
@@ -151,30 +133,32 @@ private:
 
     void update(std::span<const std::byte> chunk) noexcept
     {
-        Expects(chunk.size() == 64u);
-        m_message_length += 8ull * 64ull; // NOTE, bits
-        transform(chunk.data());
+        Expects(chunk.size() == chunk_size);
+        m_message_length += 8u * chunk_size; // NOTE, bits
+        transform(chunk.subspan<0,chunk_size>());
     }
 
     void finalize(std::span<const std::byte> chunk)
     {
-        Expects(chunk.size() < 64);
-        m_message_length += 8ull * chunk.size(); // NOTE, bits
-        auto temp = std::array<std::byte,64>{};
-        temp.fill(std::byte{0b00000000});
-        auto itr = std::copy(chunk.begin(), chunk.end(), temp.begin());
-        *itr++ =  std::byte{0b10000000};
+        Expects(chunk.size() < chunk_size);
+        m_message_length += 8u * chunk.size_bytes(); // NOTE, bits
+        auto temp = std::array<std::byte,chunk_size>{};
+        auto result = std::ranges::copy(chunk.begin(), chunk.end(), temp.begin());
+        auto itr = result.out;
+        *itr =  std::byte{0b10000000};
+        ++itr;
         if(std::distance(itr, temp.end()) < 8)
         {
-            transform(temp.data());
-            temp.fill(std::byte{0b00000000});
+            std::ranges::fill(itr, temp.end(), std::byte{0b00000000});
+            transform(temp);
+            std::ranges::fill(temp, std::byte{0b00000000});
         }
         auto length = std::span{temp}.last<8>();
-        encode(length.data(), m_message_length);
-        transform(temp.data());
+        encode(length, m_message_length);
+        transform(temp);
     }
 
-    constexpr void transform(const std::byte* chunk) noexcept
+    constexpr void transform(std::span<const std::byte,chunk_size> chunk) noexcept
     {
         Expects(chunk);
         auto words = std::array<std::uint32_t,80>{};
@@ -254,7 +238,7 @@ private:
         m_message_digest[4] += e;
     }
 
-    static constexpr void encode(std::byte* output, const message_length_type length) noexcept
+    static constexpr void encode(std::span<std::byte,8> output, const message_length_type length) noexcept
     {
         Expects(output);
     	output[7] = gsl::narrow_cast<std::byte>(length >>  0);

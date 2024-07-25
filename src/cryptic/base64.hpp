@@ -6,7 +6,6 @@
 #include <string>
 #include <array>
 #include <span>
-#include <cassert>
 #include <algorithm>
 #include "gsl/assert.hpp"
 
@@ -14,14 +13,14 @@ namespace cryptic::base64 {
 
     inline constexpr char to_character_set(std::byte b)
     {
-        assert(b < std::byte{65});
+        Expects(b < std::byte{65});
         constexpr auto set = std::to_array("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=");
         return set[std::to_integer<std::size_t>(b)];
     }
 
     inline constexpr char to_index(char c)
     {
-        Ensures((c >= 'A' and c <= 'Z') or
+        Expects((c >= 'A' and c <= 'Z') or
                (c >= 'a' and c <= 'z') or
                (c >= '0' and c <= '9') or
                 c == '+' or c == '/' or c == '=');
@@ -35,27 +34,29 @@ namespace cryptic::base64 {
         return 64;
     }
 
-    inline std::string encode(std::span<const std::byte> source)
+    inline std::string encode(auto source)
     {
+        auto bytes = std::as_bytes(std::span{source.cbegin(),source.cend()});
+ 
         auto encoded = std::string{};
 
-        while(source.size() > 0)
+        while(bytes.size() > 0)
         {
-            auto index1 = (source[0] bitand std::byte{0b11111100}) >> 2,
-                 index2 = (source[0] bitand std::byte{0b00000011}) << 4,
+            auto index1 = (bytes[0] bitand std::byte{0b11111100}) >> 2,
+                 index2 = (bytes[0] bitand std::byte{0b00000011}) << 4,
                  index3 = std::byte{64},
                  index4 = std::byte{64};
 
-            if(source.size() > 1)
+            if(bytes.size() > 1)
             {
-                index2 |= (source[1] bitand std::byte{0b11110000}) >> 4;
-                index3  = (source[1] bitand std::byte{0b00001111}) << 2;
+                index2 |= (bytes[1] bitand std::byte{0b11110000}) >> 4;
+                index3  = (bytes[1] bitand std::byte{0b00001111}) << 2;
             }
 
-            if(source.size() > 2)
+            if(bytes.size() > 2)
             {
-                index3 |= (source[2] bitand std::byte{0b11000000}) >> 6;
-                index4  = (source[2] bitand std::byte{0b00111111});
+                index3 |= (bytes[2] bitand std::byte{0b11000000}) >> 6;
+                index4  = (bytes[2] bitand std::byte{0b00111111});
             }
 
             encoded.push_back(to_character_set(index1));
@@ -63,15 +64,10 @@ namespace cryptic::base64 {
             encoded.push_back(to_character_set(index3));
             encoded.push_back(to_character_set(index4));
 
-            source = source.subspan(std::min(3ul,source.size()));
+            bytes = bytes.subspan(std::min(3ul,bytes.size()));
         }
 
         return encoded;
-    }
-
-    inline std::string encode(std::string_view source)
-    {
-        return encode(std::as_bytes(std::span{source.cbegin(),source.cend()}));
     }
 
     inline std::string decode(std::string_view source)

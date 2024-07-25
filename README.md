@@ -1,5 +1,5 @@
 # cryptic
-SHA1, SHA2 and BASE64 algorithms header only implementations with C++17.
+SHA1, SHA2 and BASE64 algorithms header only implementations with C++20.
 
 Usage is straight forward.
 
