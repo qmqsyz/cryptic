@@ -20,7 +20,7 @@ endif
 
 CXXFLAGS += -std=c++23 -stdlib=libc++ -MMD -Wall -Wextra -I$(SRCDIR) -I/usr/local/ssl/include/
 CXXFLAGS += -Ofast -D__OPTIMIZE__ #-DDEBUG
-CXXFLAGS += -Wno-deprecated-declarations
+CXXFLAGS += -Wno-deprecated-declarations -fprofile-instr-generate -fcoverage-mapping  -v
 LDFLAGS += -lc++ -lcrypto -L/usr/local/ssl/lib
 
 ############
