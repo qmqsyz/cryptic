@@ -68,18 +68,20 @@ static auto cryptic_hsa1_test()
 {
     const auto test = test_case();
     const auto t1 = std::chrono::high_resolution_clock::now();
-    auto sha1 = cryptic::sha1{};
-    auto hash = std::array<std::byte,20>{};
-    for(auto i = loops; i;)
+    for(auto i = loops; i; --i)
     {
+        auto sha1 = cryptic::sha1{};
+        auto hash = std::array<std::byte,20>{};
         sha1.hash(test);
         sha1.encode(hash);
-        --i;
+ 
+        if(i == 1)
+        {
+            std::clog << cryptic::sha1::hexadecimal(test) << '\n';
+        }
     }
     const auto t2 = std::chrono::high_resolution_clock::now();
     const auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1);
-
-    std::clog << cryptic::sha1::hexadecimal(test) << '\n';
 
     return ms.count();
 }
@@ -88,18 +90,20 @@ static auto cryptic_hsa256_test()
 {
     const auto test = test_case();
     const auto t1 = std::chrono::high_resolution_clock::now();
-    auto sha256 = cryptic::sha256{};
-    auto hash = std::array<std::byte,32>{};
-    for(auto i = loops; i;)
+    for(auto i = loops; i; --i)
     {
+        auto sha256 = cryptic::sha256{};
+        auto hash = std::array<std::byte,32>{};
         sha256.hash(test);
         sha256.encode(hash);
-        --i;
+
+        if(i == 1)
+        {
+           std::clog << cryptic::sha256::hexadecimal(test) << '\n';
+        }
     }
     const auto t2 = std::chrono::high_resolution_clock::now();
     const auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1);
-
-    std::clog << cryptic::sha256::hexadecimal(test) << '\n';
 
     return ms.count();
 }
@@ -108,21 +112,23 @@ static auto crypto_hsa1_test()
 {
     const auto test = test_case();
     const auto t1 = std::chrono::high_resolution_clock::now();
-    SHA_CTX ctx;
-    unsigned char digest[SHA_DIGEST_LENGTH];
-    for(auto i = loops; i;)
+    for(auto i = loops; i; --i)
     {
+        SHA_CTX ctx;
+        unsigned char digest[SHA_DIGEST_LENGTH];
         SHA1_Init(&ctx);
         SHA1_Update(&ctx, static_cast<const char*>(test.c_str()), test.size());
         SHA1_Final(digest, &ctx);
-        --i;
+ 
+        if(i == 1)
+        {
+            for(auto i = 0u; i < SHA_DIGEST_LENGTH; ++i)
+                std::clog << std::setw(2) << std::setfill('0') << std::hex << static_cast<unsigned>(digest[i]);
+            std::clog << std::dec << '\n';
+        }
     }
     const auto t2 = std::chrono::high_resolution_clock::now();
     const auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1);
-
-    for(auto i = 0u; i < SHA_DIGEST_LENGTH; ++i)
-        std::clog << std::setw(2) << std::setfill('0') << std::hex << static_cast<unsigned>(digest[i]);
-    std::clog << std::dec << '\n';
 
     return ms.count();
 }
@@ -131,21 +137,24 @@ static auto crypto_hsa256_test()
 {
     const auto test = test_case();
     const auto t1 = std::chrono::high_resolution_clock::now();
-    SHA256_CTX ctx;
-    unsigned char digest[SHA256_DIGEST_LENGTH];
-    for(auto i = loops; i;)
+    for(auto i = loops; i; --i)
     {
+        SHA256_CTX ctx;
+        unsigned char digest[SHA256_DIGEST_LENGTH];
         SHA256_Init(&ctx);
         SHA256_Update(&ctx, static_cast<const char*>(test.c_str()), test.size());
         SHA256_Final(digest, &ctx);
-        --i;
+ 
+         if(i == 1)
+        {
+            for(auto i = 0u; i < SHA256_DIGEST_LENGTH; ++i)
+                std::clog << std::setw(2) << std::setfill('0') << std::hex << static_cast<unsigned>(digest[i]);
+            std::clog << std::dec << '\n';
+        }
+
     }
     const auto t2 = std::chrono::high_resolution_clock::now();
     const auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1);
-
-    for(auto i = 0u; i < SHA256_DIGEST_LENGTH; ++i)
-        std::clog << std::setw(2) << std::setfill('0') << std::hex << static_cast<unsigned>(digest[i]);
-    std::clog << std::dec << '\n';
 
     return ms.count();
 }
