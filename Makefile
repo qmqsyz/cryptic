@@ -19,8 +19,8 @@ CXXFLAGS = -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk
 endif
 
 CXXFLAGS += -std=c++23 -stdlib=libc++ -MMD -Wall -Wextra -I$(SRCDIR) -I/usr/local/ssl/include/
-#CXXFLAGS += -Ofast -D__OPTIMIZE__
-CXXFLAGS += -g -DDEBUG
+CXXFLAGS += -Ofast -D__OPTIMIZE__
+#CXXFLAGS += -g -DDEBUG
 #CXXFLAGS += -fprofile-instr-generate -fcoverage-mapping  -v
 CXXFLAGS += -Wno-deprecated-declarations 
 LDFLAGS += -lc++ -lcrypto -L/usr/local/ssl/lib
