@@ -9,8 +9,12 @@ RUN set -ex &&\
     wget --no-check-certificate -qO- https://apt.llvm.org/llvm-snapshot.gpg.key | tee /etc/apt/trusted.gpg.d/apt.llvm.org.asc && \
 	touch /etc/apt/apt.conf.d/99verify-peer.conf && echo >>/etc/apt/apt.conf.d/99verify-peer.conf "Acquire { https::Verify-Peer false }" && \
     apt-get update && \
-    apt-get install --no-install-recommends --yes git libssl-dev cmake make clang-18 lldb-18 lld-18 libc++-18-dev libc++abi-18-dev \
-    libclang-rt-18-dev clang-tools-18 llvm-18-dev
+    apt-get install --no-install-recommends --yes \
+    git cmake make \
+    clang-18 lldb-18 lld-18 libc++-18-dev libc++abi-18-dev \
+    libssl-dev \
+    libclang-rt-18-dev clang-tools-18 llvm-18-dev \
+    valgrind kcachegrind graphviz
 
 # https://code.visualstudio.com/remote/advancedcontainers/add-nonroot-user
 ARG USERNAME=vscode

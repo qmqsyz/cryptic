@@ -7,8 +7,9 @@
 #include <cstdint>
 #include <sstream>
 #include <iomanip>
-#include "gsl/narrow_cast.hpp"
-#include "cryptic/base64.hpp"
+#include <gsl/narrow_cast.hpp>
+#include <cryptic/base64.hpp>
+#include <cryptic/rotate.hpp>
 
 namespace cryptic {
 
@@ -169,10 +170,10 @@ private:
                        std::to_integer<uint32_t>(chunk[j+3]);
 
         for(auto i = std::uint_fast8_t{16u}; i < 32u; ++i)
-            words[i] = std::rotl(words[i-3] xor words[i-8] xor words[i-14] xor words[i-16], 1);
+            words[i] = rotl(words[i-3] xor words[i-8] xor words[i-14] xor words[i-16], 1);
 
         for(auto i = std::uint_fast8_t{32u}; i < 80u; ++i)
-            words[i] = std::rotl(words[i-6] xor words[i-16] xor words[i-28] xor words[i-32], 2);
+            words[i] = rotl(words[i-6] xor words[i-16] xor words[i-28] xor words[i-32], 2);
 
         auto a = m_message_digest[0],
              b = m_message_digest[1],
@@ -186,10 +187,10 @@ private:
         {
             f = (b bitand c) bitor ((compl b) bitand d);
             k = 0x5A827999u;
-            auto temp = std::rotl(a,5) + f + e + k + words[i];
+            auto temp = rotl(a,5) + f + e + k + words[i];
             e = d;
             d = c;
-            c = std::rotl(b,30);
+            c = rotl(b,30);
             b = a;
             a = temp;
         }
@@ -198,10 +199,10 @@ private:
         {
             f = b xor c xor d;
             k = 0x6ED9EBA1u;
-            auto temp = std::rotl(a,5) + f + e + k + words[i];
+            auto temp = rotl(a,5) + f + e + k + words[i];
             e = d;
             d = c;
-            c = std::rotl(b,30);
+            c = rotl(b,30);
             b = a;
             a = temp;
         }
@@ -210,10 +211,10 @@ private:
         {
             f = (b bitand c) bitor (b bitand d) bitor (c bitand d);
             k = 0x8F1BBCDCu;
-            auto temp = std::rotl(a,5) + f + e + k + words[i];
+            auto temp = rotl(a,5) + f + e + k + words[i];
             e = d;
             d = c;
-            c = std::rotl(b,30);
+            c = rotl(b,30);
             b = a;
             a = temp;
         }
@@ -222,10 +223,10 @@ private:
         {
             f = b xor c xor d;
             k = 0xCA62C1D6u;
-            auto temp = std::rotl(a,5) + f + e + k + words[i];
+            auto temp = rotl(a,5) + f + e + k + words[i];
             e = d;
             d = c;
-            c = std::rotl(b,30);
+            c = rotl(b,30);
             b = a;
             a = temp;
         }
@@ -239,7 +240,6 @@ private:
 
     static constexpr void encode(std::span<std::byte,8> output, const message_length_type length) noexcept
     {
-        Expects(output);
     	output[7] = gsl::narrow_cast<std::byte>(length >>  0);
     	output[6] = gsl::narrow_cast<std::byte>(length >>  8);
     	output[5] = gsl::narrow_cast<std::byte>(length >> 16);

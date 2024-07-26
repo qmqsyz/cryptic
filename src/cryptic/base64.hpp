@@ -7,7 +7,7 @@
 #include <array>
 #include <span>
 #include <algorithm>
-#include "gsl/assert.hpp"
+#include <gsl/assert.hpp>
 
 namespace cryptic::base64 {
 

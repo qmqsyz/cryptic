@@ -11,11 +11,11 @@
 #include <sys/types.h>
 #include <openssl/sha.h>
 
-using namespace std::string_literals;
+using namespace std::literals;
 
 //constexpr auto loops = 5'000'000ul;
 
-constexpr auto loops = 1000'000ul;
+constexpr auto loops = 10'000ul;
 
 static auto test_case()
 {
@@ -61,7 +61,7 @@ XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
-)"s;
+)"sv;
 }
 
 static auto cryptic_hsa1_test()
@@ -117,7 +117,7 @@ static auto crypto_hsa1_test()
         SHA_CTX ctx;
         unsigned char digest[SHA_DIGEST_LENGTH];
         SHA1_Init(&ctx);
-        SHA1_Update(&ctx, static_cast<const char*>(test.c_str()), test.size());
+        SHA1_Update(&ctx, static_cast<const char*>(test.data()), test.size());
         SHA1_Final(digest, &ctx);
  
         if(i == 1)
@@ -142,7 +142,7 @@ static auto crypto_hsa256_test()
         SHA256_CTX ctx;
         unsigned char digest[SHA256_DIGEST_LENGTH];
         SHA256_Init(&ctx);
-        SHA256_Update(&ctx, static_cast<const char*>(test.c_str()), test.size());
+        SHA256_Update(&ctx, static_cast<const char*>(test.data()), test.size());
         SHA256_Final(digest, &ctx);
  
          if(i == 1)

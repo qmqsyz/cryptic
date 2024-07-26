@@ -19,8 +19,10 @@ CXXFLAGS = -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk
 endif
 
 CXXFLAGS += -std=c++23 -stdlib=libc++ -MMD -Wall -Wextra -I$(SRCDIR) -I/usr/local/ssl/include/
-CXXFLAGS += -Ofast -D__OPTIMIZE__ #-DDEBUG
-CXXFLAGS += -Wno-deprecated-declarations -fprofile-instr-generate -fcoverage-mapping  -v
+#CXXFLAGS += -Ofast -D__OPTIMIZE__
+CXXFLAGS += -g -DDEBUG
+#CXXFLAGS += -fprofile-instr-generate -fcoverage-mapping  -v
+CXXFLAGS += -Wno-deprecated-declarations 
 LDFLAGS += -lc++ -lcrypto -L/usr/local/ssl/lib
 
 ############
@@ -123,3 +125,9 @@ dump:
 	@echo ''
 
 -include $(DEPENDENCIES)
+
+
+
+# /usr/bin/valgrind --tool=callgrind  ./bin/benchmark
+
+# /usr/bin/callgrind_annotate callgrind.out.4483 > analysis.txt

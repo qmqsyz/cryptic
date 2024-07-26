@@ -9,6 +9,7 @@
 #include <iomanip>
 #include "gsl/narrow_cast.hpp"
 #include "cryptic/base64.hpp"
+#include "cryptic/rotate.hpp"
 
 namespace cryptic {
 
@@ -171,8 +172,8 @@ private:
 
         for(auto i = std::uint_fast8_t{16u}; i < 64u; ++i)
         {
-            const auto s0 = std::rotr(words[i-15], 7) xor std::rotr(words[i-15], 18) xor (words[i-15] >> 3);
-            const auto s1 = std::rotr(words[i-2], 17) xor std::rotr(words[i-2], 19) xor (words[i-2] >> 10);
+            const auto s0 = rotr(words[i-15], 7) xor rotr(words[i-15], 18) xor (words[i-15] >> 3);
+            const auto s1 = rotr(words[i-2], 17) xor rotr(words[i-2], 19) xor (words[i-2] >> 10);
             words[i] = words[i-16] + s0 + words[i-7] + s1;
         }
 
@@ -187,10 +188,10 @@ private:
 
         for(auto i = std::uint_fast8_t{0u}; i < 64u; ++i)
         {
-            const auto S1 = std::rotr(e,6) xor std::rotr(e,11) xor std::rotr(e,25);
+            const auto S1 = rotr(e,6) xor rotr(e,11) xor rotr(e,25);
             const auto ch = (e bitand f) xor ((compl e) bitand g);
             const auto temp1 = h + S1 + ch + k[i] + words[i];
-            const auto S0 = std::rotr(a,2) xor std::rotr(a,13) xor std::rotr(a,22);
+            const auto S0 = rotr(a,2) xor rotr(a,13) xor rotr(a,22);
             const auto maj = (a bitand b) xor (a bitand c) xor (b bitand c);
             const auto temp2 = S0 + maj;
 
@@ -216,7 +217,6 @@ private:
 
     static constexpr void encode(std::span<std::byte,8> output, const message_length_type length) noexcept
     {
-        Expects(output);
     	output[7] = gsl::narrow_cast<std::byte>(length >>  0);
     	output[6] = gsl::narrow_cast<std::byte>(length >>  8);
     	output[5] = gsl::narrow_cast<std::byte>(length >> 16);
