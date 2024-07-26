@@ -105,6 +105,9 @@ DEPENDENCIES = $(MAINS:$(SRCDIR)/%.cpp=$(OBJDIR)/%.d) $(OBJECTS:%.o=%.d) $(TEST_
 .PHONY: all
 all: $(INCLUDES)
 
+.PHONY: module
+module: all
+
 .PHONY: test
 test: $(INCLUDES) $(TEST_TARGET)
 	$(TEST_TARGET)
