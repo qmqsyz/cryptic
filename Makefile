@@ -34,6 +34,7 @@ OBJDIR = obj
 BINDIR =$(PREFIX)/bin
 LIBDIR = $(PREFIX)/lib
 INCDIR = $(PREFIX)/include
+PCMDIR = $(PREFIX)/pcm
 GTESTDIR = $(PREFIX)/googletest
 
 .SUFFIXES:
@@ -43,6 +44,32 @@ GTESTDIR = $(PREFIX)/googletest
 
 # Make does not offer a recursive wildcard function, so here's one:
 rwildcard = $(wildcard $1$2) $(foreach d,$(wildcard $1*),$(call rwildcard,$d/,$2))
+
+############
+
+ifeq ($(basename $(basename $(shell $(CXX) -dumpversion))),18) # This section only works with Clang 18
+
+MODULES = $(call rwildcard,$(SRCDIR)/,*.c++m)
+
+PCMS = $(MODULES:$(SRCDIR)/%.c++m=$(PCMDIR)/%.pcm)
+
+OBJECTS += $(MODULES:$(SRCDIR)/%.c++m=$(OBJDIR)/%.o)
+
+$(PCMDIR)/%.pcm: $(SRCDIR)/%.c++m
+	@mkdir -p $(@D)
+	$(CXX) $(CXXFLAGS) $< --precompile -c -o $@
+
+$(OBJDIR)/%.o: $(PCMDIR)/%.pcm
+	@mkdir -p $(@D)
+	$(CXX) $< -c -o $@
+
+LIBRARY = $(addprefix $(LIBDIR)/, lib$(PROJECT).a)
+
+$(LIBRARY) : $(OBJECTS)
+	@mkdir -p $(@D)
+	$(AR) $(ARFLAGS) $@ $^
+
+endif # Clang 18 and above
 
 ############
 
@@ -57,10 +84,6 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.cpp
 $(BINDIR)/%: $(SRCDIR)/%.cpp
 	@mkdir -p $(@D)
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) $< -o $@
-
-$(LIBRARY) : $(OBJECTS)
-	@mkdir -p $(@D)
-	$(AR) $(ARFLAGS) $@ $^
 
 ############
 
@@ -106,7 +129,7 @@ DEPENDENCIES = $(MAINS:$(SRCDIR)/%.cpp=$(OBJDIR)/%.d) $(OBJECTS:%.o=%.d) $(TEST_
 all: $(INCLUDES)
 
 .PHONY: module
-module: all
+module: $(PCMS) $(LIBRARY)
 
 .PHONY: test
 test: $(INCLUDES) $(TEST_TARGET)
@@ -134,3 +157,7 @@ dump:
 # /usr/bin/valgrind --tool=callgrind  ./bin/benchmark
 
 # /usr/bin/callgrind_annotate callgrind.out.4483 > analysis.txt
+
+# /usr/lib/llvm-18/bin/llvm-profdata 
+
+# /usr/lib/llvm-18/bin/llvm-cov gcov bin/benchmark
