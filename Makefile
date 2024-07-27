@@ -1,9 +1,7 @@
-.DEFAULT_GOAL := all
+# https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p1204r0.html
 
 PROJECT := $(lastword $(notdir $(CURDIR)))
-
 OS := $(shell uname -s)
-CXX := clang++
 
 ifeq ($(OS),Linux)
 CC :=  /usr/lib/llvm-18/bin/clang
@@ -18,7 +16,7 @@ CXX := /Library/Developer/CommandLineTools/usr/bin/clang++
 CXXFLAGS = -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk
 endif
 
-CXXFLAGS += -std=c++23 -stdlib=libc++ -MMD -Wall -Wextra -I$(SRCDIR) -I/usr/local/ssl/include/
+CXXFLAGS += -std=c++23 -stdlib=libc++ -MMD -Wall -Wextra -I. -I$(INCDIR) -I/usr/local/ssl/include/
 CXXFLAGS += -Ofast -D__OPTIMIZE__
 #CXXFLAGS += -g -DDEBUG
 #CXXFLAGS += -fprofile-instr-generate -fcoverage-mapping  -v
@@ -28,28 +26,24 @@ LDFLAGS += -lc++ -lcrypto -L/usr/local/ssl/lib
 ############
 
 PREFIX = .
-SRCDIR = src
-TESTDIR = test
-OBJDIR = obj
-BINDIR =$(PREFIX)/bin
+SRCDIR = $(PROJECT)
+TESTDIR = tests
+EXAMPLEDIR = examples
+OBJDIR = $(PREFIX)/obj
+BINDIR = $(PREFIX)/bin
 LIBDIR = $(PREFIX)/lib
 INCDIR = $(PREFIX)/include
 PCMDIR = $(PREFIX)/pcm
 GTESTDIR = $(PREFIX)/googletest
 
 .SUFFIXES:
-.SUFFIXES: .cpp .hpp .o .a
-
-############
-
-# Make does not offer a recursive wildcard function, so here's one:
-rwildcard = $(wildcard $1$2) $(foreach d,$(wildcard $1*),$(call rwildcard,$d/,$2))
+.SUFFIXES: .cpp .hpp .c++m .c++ .o .a
 
 ############
 
 ifeq ($(basename $(basename $(shell $(CXX) -dumpversion))),18) # This section only works with Clang 18
 
-MODULES = $(call rwildcard,$(SRCDIR)/,*.c++m)
+MODULES = $(wildcard $(SRCDIR)/*.c++m)
 
 PCMS = $(MODULES:$(SRCDIR)/%.c++m=$(PCMDIR)/%.pcm)
 
@@ -73,25 +67,29 @@ endif # Clang 18 and above
 
 ############
 
-SOURCES = $(call rwildcard,$(SRCDIR)/,*.cpp)
+T-SOURCES = $(wildcard $(TESTDIR)/*.cpp)
+T-OBJECTS += $(T-SOURCES:$(TESTDIR)/%.cpp=$(OBJDIR)/%.o)
 
-OBJECTS = $(SOURCES:$(SRCDIR)/%.cpp=$(OBJDIR)/%.o)
-
-$(OBJDIR)/%.o: $(SRCDIR)/%.cpp
-	@mkdir -p $(@D)
-	$(CXX) $(CXXFLAGS) -I$(SRCDIR) -c $< -o $@
-
-$(BINDIR)/%: $(SRCDIR)/%.cpp
+$(BINDIR)/%: $(TESTDIR)/%.cpp
 	@mkdir -p $(@D)
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) $< -o $@
 
 ############
 
-HEADERS = $(call rwildcard,$(SRCDIR)/,*.hpp)
+E-SOURCES = $(wildcard $(EXAMPLEDIR)/*.cpp)
+E-OBJECTS += $(E-SOURCES:$(EXAMPLEDIR)/%.cpp=$(OBJDIR)/%.o)
 
-INCLUDES = $(HEADERS:$(SRCDIR)/%.hpp=$(INCDIR)/%.hpp)
+$(BINDIR)/%: $(EXAMPLEDIR)/%.cpp
+	@mkdir -p $(@D)
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $< -o $@
 
-$(INCDIR)/%.hpp: $(SRCDIR)/%.hpp
+############
+
+HEADERS = $(wildcard $(SRCDIR)/*.hpp) $(wildcard $(SRCDIR)/*/*.hpp)
+
+INCLUDES = $(addprefix $(INCDIR)/, $(HEADERS))
+
+$(INCDIR)/$(SRCDIR)/%.hpp: $(SRCDIR)/%.hpp
 	@mkdir -p $(@D)
 	cp $< $@
 
@@ -105,17 +103,17 @@ $(GTESTLIBS):
 
 ############
 
-TEST_SOURCES = $(call rwildcard,$(TESTDIR)/,*.cpp)
+TEST_SOURCES = $(wildcard $(SRCDIR)/*.test.c++)
 
-TEST_OBJECTS = $(TEST_SOURCES:$(TESTDIR)/%.cpp=$(OBJDIR)/$(TESTDIR)/%.o)
+TEST_OBJECTS = $(TEST_SOURCES:$(SRCDIR)/%.c++=$(OBJDIR)/%.o)
 
 TEST_TARGET = $(BINDIR)/test_$(PROJECT)
 
-$(OBJDIR)/$(TESTDIR)/%.o: $(TESTDIR)/%.cpp $(GTESTLIBS) $(INCLUDES)
+$(OBJDIR)/%.o: $(SRCDIR)/%.c++
 	@mkdir -p $(@D)
-	$(CXX) $(CXXFLAGS) -I$(INCDIR) -c $< -o $@
+	$(CXX) $(CXXFLAGS) -I$(SRCDIR) -c $< -o $@
 
-$(TEST_TARGET): $(TEST_OBJECTS) $(LIBRARY)
+$(TEST_TARGET): $(GTESTLIBS) $(TEST_OBJECTS) $(LIBRARY)
 	@mkdir -p $(@D)
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(TEST_OBJECTS) $(LIBRARY) $(GTESTLIBS) -o $@
 
@@ -125,6 +123,8 @@ DEPENDENCIES = $(MAINS:$(SRCDIR)/%.cpp=$(OBJDIR)/%.d) $(OBJECTS:%.o=%.d) $(TEST_
 
 ############
 
+.DEFAULT_GOAL := all
+
 .PHONY: all
 all: $(INCLUDES)
 
@@ -132,18 +132,20 @@ all: $(INCLUDES)
 module: $(PCMS) $(LIBRARY)
 
 .PHONY: test
-test: $(INCLUDES) $(TEST_TARGET)
+test: $(TEST_TARGET)
 	$(TEST_TARGET)
 
 .PHONY: benchmark
 benchmark: ./bin/benchmark
 	./bin/benchmark
 
-./bin/benchmark: src/cryptic/sha1.hpp src/cryptic/sha2.hpp src/cryptic/base64.hpp
+.PHONY: example
+example: ./bin/example
+	./bin/example
 
 .PHONY: clean
 clean:
-	@rm -rf $(OBJDIR) $(BINDIR) $(LIBDIR) $(INCDIR)
+	@rm -rf $(OBJDIR) $(BINDIR) $(LIBDIR) $(INCDIR) $(PCMDIR) 
 
 .PHONY: dump
 dump:
@@ -151,8 +153,6 @@ dump:
 	@echo ''
 
 -include $(DEPENDENCIES)
-
-
 
 # /usr/bin/valgrind --tool=callgrind  ./bin/benchmark
 

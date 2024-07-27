@@ -2,7 +2,7 @@
 #include<iostream>
 #include<exception>
 
-namespace gsl {
+namespace cryptic::details {
 
 inline void expects(bool condition, const char* file, int line, const char* func)
 {

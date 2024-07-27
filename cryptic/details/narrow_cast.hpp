@@ -1,6 +1,6 @@
 #pragma once
 
-namespace gsl {
+namespace cryptic::details {
 
 template <class T, class U>
 constexpr T narrow_cast(U&& u) noexcept

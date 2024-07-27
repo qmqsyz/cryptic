@@ -7,11 +7,13 @@
 #include <cstdint>
 #include <sstream>
 #include <iomanip>
-#include <gsl/narrow_cast.hpp>
 #include <cryptic/base64.hpp>
-#include <cryptic/rotate.hpp>
+#include <cryptic/details/rotate.hpp>
+#include <cryptic/details/narrow_cast.hpp>
 
 namespace cryptic {
+
+using namespace details;
 
 class sha1
 {
@@ -240,14 +242,14 @@ private:
 
     static constexpr void encode(std::span<std::byte,8> output, const message_length_type length) noexcept
     {
-    	output[7] = gsl::narrow_cast<std::byte>(length >>  0);
-    	output[6] = gsl::narrow_cast<std::byte>(length >>  8);
-    	output[5] = gsl::narrow_cast<std::byte>(length >> 16);
-    	output[4] = gsl::narrow_cast<std::byte>(length >> 24);
-    	output[3] = gsl::narrow_cast<std::byte>(length >> 32);
-    	output[2] = gsl::narrow_cast<std::byte>(length >> 40);
-    	output[1] = gsl::narrow_cast<std::byte>(length >> 48);
-    	output[0] = gsl::narrow_cast<std::byte>(length >> 56);
+    	output[7] = narrow_cast<std::byte>(length >>  0);
+    	output[6] = narrow_cast<std::byte>(length >>  8);
+    	output[5] = narrow_cast<std::byte>(length >> 16);
+    	output[4] = narrow_cast<std::byte>(length >> 24);
+    	output[3] = narrow_cast<std::byte>(length >> 32);
+    	output[2] = narrow_cast<std::byte>(length >> 40);
+    	output[1] = narrow_cast<std::byte>(length >> 48);
+    	output[0] = narrow_cast<std::byte>(length >> 56);
     }
 
     message_length_type m_message_length;

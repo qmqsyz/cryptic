@@ -1,9 +1,9 @@
 #pragma once
 #include <concepts>
 #include <limits>
-#include <gsl/assert.hpp>
+#include <cryptic/details/assert.hpp>
 
-namespace cryptic {
+namespace cryptic::details {
 
 template <std::unsigned_integral I>
 inline
